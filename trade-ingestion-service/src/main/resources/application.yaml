@@ -4,11 +4,10 @@ server:
 spring:
   application:
     name: trade-ingestion-service
+  profiles:
+    active: local
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/surveillance?currentSchema=trade_ingestion
-    username: surveillance
-    password: surveillance123
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -28,7 +27,6 @@ spring:
     baseline-on-migrate: true
 
   kafka:
-    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

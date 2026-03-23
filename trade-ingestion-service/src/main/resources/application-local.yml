@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/surveillance?currentSchema=trade_ingestion
+    username: surveillance
+    password: surveillance123
+
+  kafka:
+    bootstrap-servers: localhost:9092
