@@ -1,6 +1,6 @@
 package com.financialsurveillance.tradingestion.simulator;
 
-import com.financialsurveillance.tradingestion.domain.TradeType;
+import com.financialsurveillance.events.TradeType;
 import com.financialsurveillance.tradingestion.dto.TradeRequest;
 import com.financialsurveillance.tradingestion.exception.DuplicateTradeException;
 import com.financialsurveillance.tradingestion.exception.InvalidTradeException;

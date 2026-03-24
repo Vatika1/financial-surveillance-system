@@ -1,6 +1,6 @@
 package com.financialsurveillance.tradingestion.dto;
 
-import com.financialsurveillance.tradingestion.domain.TradeType;
+import com.financialsurveillance.events.TradeType;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

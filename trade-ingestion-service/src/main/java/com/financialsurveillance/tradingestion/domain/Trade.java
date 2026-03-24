@@ -1,5 +1,7 @@
 package com.financialsurveillance.tradingestion.domain;
 
+import com.financialsurveillance.events.TradeStatus;
+import com.financialsurveillance.events.TradeType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

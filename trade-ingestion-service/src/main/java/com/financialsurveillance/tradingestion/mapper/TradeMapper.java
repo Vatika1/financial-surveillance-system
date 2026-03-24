@@ -1,12 +1,10 @@
 package com.financialsurveillance.tradingestion.mapper;
 
+import com.financialsurveillance.events.TradeCreatedEvent;
+import com.financialsurveillance.events.TradeStatus;
 import com.financialsurveillance.tradingestion.domain.Trade;
-import com.financialsurveillance.tradingestion.domain.TradeStatus;
-import com.financialsurveillance.tradingestion.domain.TradeType;
 import com.financialsurveillance.tradingestion.dto.TradeRequest;
 import com.financialsurveillance.tradingestion.dto.TradeResponse;
-import com.financialsurveillance.tradingestion.event.TradeCreatedEvent;
-import lombok.Builder;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;

@@ -83,6 +83,10 @@
 			<artifactId>spring-kafka-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.financialsurveillance</groupId>
+			<artifactId>surveillance-events-lib</artifactId>
+		</dependency>
 
 	</dependencies>
 
@@ -91,6 +95,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>3.5.12</version>
 			</plugin>
 		</plugins>
 	</build>

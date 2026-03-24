@@ -1,4 +1,4 @@
-package com.financialsurveillance.tradingestion.domain;
+package com.financialsurveillance.events;
 
 public enum TradeStatus {
     RECEIVED,

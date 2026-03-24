@@ -1,6 +1,6 @@
 package com.financialsurveillance.tradingestion.dto;
 
-import com.financialsurveillance.tradingestion.domain.TradeStatus;
+import com.financialsurveillance.events.TradeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

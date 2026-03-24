@@ -1,6 +1,6 @@
 package com.financialsurveillance.tradingestion.config;
 
-import com.financialsurveillance.tradingestion.event.TradeCreatedEvent;
+import com.financialsurveillance.events.TradeCreatedEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;

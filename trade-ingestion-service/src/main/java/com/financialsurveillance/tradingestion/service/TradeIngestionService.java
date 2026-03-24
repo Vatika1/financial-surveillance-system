@@ -1,9 +1,9 @@
 package com.financialsurveillance.tradingestion.service;
 
+import com.financialsurveillance.events.TradeCreatedEvent;
 import com.financialsurveillance.tradingestion.domain.Trade;
 import com.financialsurveillance.tradingestion.dto.TradeRequest;
 import com.financialsurveillance.tradingestion.dto.TradeResponse;
-import com.financialsurveillance.tradingestion.event.TradeCreatedEvent;
 import com.financialsurveillance.tradingestion.exception.DuplicateTradeException;
 import com.financialsurveillance.tradingestion.exception.InvalidTradeException;
 import com.financialsurveillance.tradingestion.mapper.TradeMapper;

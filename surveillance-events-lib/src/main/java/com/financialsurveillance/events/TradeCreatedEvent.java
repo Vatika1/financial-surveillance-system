@@ -1,7 +1,5 @@
-package com.financialsurveillance.tradingestion.event;
+package com.financialsurveillance.events;
 
-import com.financialsurveillance.tradingestion.domain.TradeStatus;
-import com.financialsurveillance.tradingestion.domain.TradeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
