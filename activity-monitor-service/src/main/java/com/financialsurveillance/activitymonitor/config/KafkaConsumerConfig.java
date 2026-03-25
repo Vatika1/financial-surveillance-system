@@ -29,9 +29,9 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     private final KafkaProperties kafkaProperties;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate;
 
-    public KafkaConsumerConfig(KafkaProperties kafkaProperties, KafkaTemplate<String, Object> kafkaTemplate) {
+    public KafkaConsumerConfig(KafkaProperties kafkaProperties, KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate) {
         this.kafkaProperties = kafkaProperties;
         this.kafkaTemplate = kafkaTemplate;
     }

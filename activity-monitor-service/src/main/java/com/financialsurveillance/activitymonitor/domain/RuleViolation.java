@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -38,6 +40,7 @@ public class RuleViolation {
     @Column(name = "severity", nullable = false, length = 50)
     private String severity;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "violation_details", columnDefinition = "jsonb")
     private JsonNode violationDetails;
 
