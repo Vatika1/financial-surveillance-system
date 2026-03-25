@@ -1,4 +1,4 @@
-package com.financialsurveillance.activitymonitor.rules.excessivetrading;
+package com.financialsurveillance.activitymonitor.rules.concentrationrisk;
 
 import com.financialsurveillance.activitymonitor.dto.RuleContext;
 import com.financialsurveillance.activitymonitor.dto.RuleViolationDTO;
@@ -9,12 +9,15 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class Rule005ExcessiveTrading implements SurveillanceRule {
+public class Rule010ConcentrationRisk implements SurveillanceRule {
     @Override
     public Optional<RuleViolationDTO> evaluate(TradeCreatedEvent event, RuleContext context) {
         // TODO: Implement when user-service REST client is ready
-        // Rule: trade value exceeds 20% of account size
-        // Needs: context.getAccountSize() from user-service
+        // You know the trade value from the current TradeCreatedEvent
+        // You need the total account/portfolio size from user-service
+        // Calculate: tradeValue / portfolioSize — if that ratio exceeds a threshold (e.g. 20%) → flag it
+        // Needs REST call to user-service to fetch portfolio/account size by accountId
+        // Severity is MEDIUM
         return Optional.empty();
     }
 }
