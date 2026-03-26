@@ -16,6 +16,7 @@ import java.util.UUID;
 public class AlertCreatedEvent {
 
     private UUID alertId;
+    private String alertTypeId;
     private String tradeId;
     private String advisorId;
     private String ruleId;

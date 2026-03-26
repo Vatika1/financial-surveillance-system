@@ -4,6 +4,7 @@ import com.financialsurveillance.activitymonitor.dto.RuleViolationDTO;
 import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertStatus;
 import com.financialsurveillance.events.TradeCreatedEvent;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,15 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Component
+@RequiredArgsConstructor
 public class AlertEventProducer {
 
     private final KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate;
@@ -23,10 +29,20 @@ public class AlertEventProducer {
     private String topic;
 
     private static final Logger log = LoggerFactory.getLogger(AlertEventProducer.class);
-
-    public AlertEventProducer(KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
+    private static final Map<String, String> RULE_CODES = Map.ofEntries(
+            Map.entry("RULE_001", "LTS"),
+            Map.entry("RULE_002", "RRT"),
+            Map.entry("RULE_003", "RS"),
+            Map.entry("RULE_004", "PET"),
+            Map.entry("RULE_005", "ET"),
+            Map.entry("RULE_006", "AHS"),
+            Map.entry("RULE_007", "FR"),
+            Map.entry("RULE_008", "WT"),
+            Map.entry("RULE_009", "LS"),
+            Map.entry("RULE_010", "CR"),
+            Map.entry("RULE_011", "CAT"),
+            Map.entry("RULE_012", "LT")
+    );
 
     public void publishAlert(RuleViolationDTO violation, TradeCreatedEvent event){
 
@@ -34,6 +50,7 @@ public class AlertEventProducer {
 
         AlertCreatedEvent alertCreatedEvent = AlertCreatedEvent.builder()
                 .alertId(UUID.randomUUID())
+                .alertTypeId(generateAlertTypeId(violation.getRuleId()))
                 .createdAt(event.getCreatedAt())
                 .ruleId(violation.getRuleId())
                 .advisorId(violation.getAdvisorId())
@@ -70,8 +87,14 @@ public class AlertEventProducer {
             );
 
     });
-
-
 }
+    private String generateAlertTypeId(String ruleId){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+
+        return RULE_CODES.get(ruleId) + "-" + LocalDateTime.now().format(formatter);
+    }
+
+
+
 }
 
