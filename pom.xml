@@ -20,7 +20,7 @@
         <module>surveillance-events-lib</module>
         <module>trade-ingestion-service</module>
         <module>activity-monitor-service</module>
-<!--        <module>alert-service</module>-->
+        <module>alert-service</module>
 <!--        <module>case-management-service</module>-->
 <!--        <module>notification-service</module>-->
 <!--        <module>audit-service</module>-->

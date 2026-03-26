@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class TradeEventConsumer {
     private final ActivityMonitorService activityMonitorService;
     @KafkaListener(
-            topics = "trades.raw",
+            topics = "${kafka.topics.trades-raw}",
             groupId = "activity-monitor-service",
             containerFactory = "kafkaListenerContainerFactory"
     )

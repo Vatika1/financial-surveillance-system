@@ -48,6 +48,7 @@ spring:
 
 kafka:
   topics:
+    trades-raw: trades.raw
     alerts-created: alerts.created
 
 management:
