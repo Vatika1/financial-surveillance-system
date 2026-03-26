@@ -1,7 +1,7 @@
 package com.financialsurveillance.activitymonitor.config;
 
-import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.TradeCreatedEvent;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -23,18 +23,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@RequiredArgsConstructor
 public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     private final KafkaProperties kafkaProperties;
-    private final KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate;
-
-    public KafkaConsumerConfig(KafkaProperties kafkaProperties, KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate) {
-        this.kafkaProperties = kafkaProperties;
-        this.kafkaTemplate = kafkaTemplate;
-    }
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Bean
     public ConsumerFactory<String, TradeCreatedEvent> tradeConsumerFactory(){
