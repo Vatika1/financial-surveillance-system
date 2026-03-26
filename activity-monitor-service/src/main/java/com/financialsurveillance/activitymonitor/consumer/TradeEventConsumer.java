@@ -1,5 +1,6 @@
 package com.financialsurveillance.activitymonitor.consumer;
 
+import com.financialsurveillance.activitymonitor.exception.TradeProcessingException;
 import com.financialsurveillance.activitymonitor.service.ActivityMonitorService;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class TradeEventConsumer {
         } catch (Exception ex) {
             // ❗ Do NOT acknowledge → message will be retried
             // Depending on config: retry / DLQ
-            throw new RuntimeException("Kafka processing failed", ex);
+            throw new TradeProcessingException(event.getTradeId(), event.getAdvisorId(), ex);
         }
     }
 }

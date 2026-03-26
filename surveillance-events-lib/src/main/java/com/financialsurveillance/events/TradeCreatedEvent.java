@@ -1,5 +1,6 @@
 package com.financialsurveillance.events;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +28,15 @@ public class TradeCreatedEvent {
     private BigDecimal totalValue;
     private String currency;
     private String exchange;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private ZonedDateTime tradeTimestamp;
+
     private String sourceSystem;
     private String sourceSystemId;
     private TradeStatus status;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private ZonedDateTime createdAt;
 
 }
