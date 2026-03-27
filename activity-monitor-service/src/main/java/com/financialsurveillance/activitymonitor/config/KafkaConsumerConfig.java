@@ -1,5 +1,6 @@
 package com.financialsurveillance.activitymonitor.config;
 
+import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -30,7 +31,7 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     private final KafkaProperties kafkaProperties;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate;
 
     @Bean
     public ConsumerFactory<String, TradeCreatedEvent> tradeConsumerFactory(){
