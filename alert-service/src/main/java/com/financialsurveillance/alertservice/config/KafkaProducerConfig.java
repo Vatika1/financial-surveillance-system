@@ -54,7 +54,7 @@ public class KafkaProducerConfig {
         // Throughput / batching
         props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
         props.put(ProducerConfig.LINGER_MS_CONFIG, 5);
-        props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+        props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "lz4");
 
         // Timeouts
         props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 120000);

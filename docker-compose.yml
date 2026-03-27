@@ -30,7 +30,7 @@ services:
       retries: 5
 
   # ─────────────────────────────────────────
-  # Zookeeper (required by Kafka)
+  # Zookeeper
   # ─────────────────────────────────────────
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -68,8 +68,7 @@ services:
       retries: 5
 
   # ─────────────────────────────────────────
-  # Kafdrop — Kafka UI in your browser
-  # Open http://localhost:9000 to see topics
+  # Kafdrop
   # ─────────────────────────────────────────
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
@@ -80,6 +79,72 @@ services:
       - "9000:9000"
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
+    networks:
+      - surveillance-network
+
+  # ─────────────────────────────────────────
+  # trade-ingestion-service
+  # ─────────────────────────────────────────
+  trade-ingestion-service:
+    image: trade-ingestion-service:latest
+    container_name: surveillance-trade-ingestion
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/surveillance
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - surveillance-network
+
+  # ─────────────────────────────────────────
+  # activity-monitor-service
+  # ─────────────────────────────────────────
+  activity-monitor-service:
+    image: activity-monitor-service:latest
+    container_name: surveillance-activity-monitor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/surveillance
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - surveillance-network
+
+  # ─────────────────────────────────────────
+  # alert-service
+  # ─────────────────────────────────────────
+  alert-service:
+    image: alert-service:latest
+    container_name: surveillance-alert-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/surveillance
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     networks:
       - surveillance-network
 
