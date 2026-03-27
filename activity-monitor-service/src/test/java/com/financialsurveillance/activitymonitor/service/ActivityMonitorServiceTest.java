@@ -26,8 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ActivityMonitorServiceTest {
@@ -126,7 +125,17 @@ public class ActivityMonitorServiceTest {
     }
 
     @Test
-    void processTrade_ShouldFailToProcessTrade(){
+    void processTrade_ShouldNotSaveOrPublish_whenNoViolations(){
+        TradeCreatedEvent event = getTradeCreatedEvent();
 
+        when(tradeWindowStore.getRecentTrades(event.getAdvisorId(), Duration.ofSeconds(60)))
+                .thenReturn(List.of());
+        when(surveillanceEngine.evaluate(any(), any()))
+                .thenReturn(List.of());
+
+        activityMonitorService.processTrade(event);
+
+        verify(ruleViolationRepository, never()).save(any());
+        verify(alertEventProducer, never()).publishAlert(any(), any());
     }
 }
