@@ -6,7 +6,6 @@ import com.financialsurveillance.alertservice.mapper.AlertMapper;
 import com.financialsurveillance.alertservice.producer.AlertPersistedEventProducer;
 import com.financialsurveillance.alertservice.repository.AlertRepository;
 import com.financialsurveillance.events.AlertCreatedEvent;
-import com.financialsurveillance.events.AlertPersistedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
