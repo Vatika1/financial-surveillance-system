@@ -48,6 +48,8 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <springdoc.version>2.3.0</springdoc.version>
         <jjwt.version>0.12.3</jjwt.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.minimum.coverage>0.50</jacoco.minimum.coverage>
     </properties>
 
     <dependencyManagement>
@@ -156,6 +158,65 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <!-- This actually ACTIVATES JaCoCo for all modules -->
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals><goal>report</goal></goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/domain/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/model/**</exclude>
+                                <exclude>**/mapper/**</exclude>
+                                <exclude>**/*Application.class</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <excludes>
+                                <!-- Exclude Lombok-generated DTOs and domain entities -->
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/domain/**</exclude>
+                                <exclude>**/entity/**</exclude>
+                                <exclude>**/model/**</exclude>
+                                <exclude>**/mapper/**</exclude>
+                                <!-- Exclude app entry point -->
+                                <exclude>**/*Application.class</exclude>
+                            </excludes>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${jacoco.minimum.coverage}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
 </project>
