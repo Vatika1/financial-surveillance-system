@@ -54,7 +54,7 @@ jobs:
         run: mvn package -DskipTests --batch-mode
 
       - name: SonarCloud analysis
-        run: mvn sonar:sonar -Dsonar.projectKey=Vatika1_financial-surveillance-system -Dsonar.organization=vatika1 -Dsonar.host.url=https://sonarcloud.io
+        run: mvn verify sonar:sonar -DskipTests=false -Dsonar.projectKey=Vatika1_financial-surveillance-system -Dsonar.organization=vatika1 -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
