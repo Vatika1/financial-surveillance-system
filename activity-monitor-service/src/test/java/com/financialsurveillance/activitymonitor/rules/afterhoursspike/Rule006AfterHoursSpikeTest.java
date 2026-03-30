@@ -84,6 +84,39 @@ public class Rule006AfterHoursSpikeTest {
                 .build();
         Optional<RuleViolationDTO> result = rule.evaluate(currentEvent, ruleContext);
         assertTrue(result.isEmpty());
+    }
 
+    @Test
+    void shouldNotDetectAfterHoursSpike_tradeAtMarketOpen_9_30AM(){
+        ZonedDateTime zdt = ZonedDateTime.of(
+                2026, 3, 29,
+                9, 30, 0, 0,
+                ZoneId.of("America/New_York")
+        );
+        TradeCreatedEvent currentEvent = TradeCreatedEvent.builder()
+                .symbol("AAPL")
+                .tradeTimestamp(zdt)
+                .advisorId("ADV-001")
+                .tradeId("TRD-001")
+                .build();
+        Optional<RuleViolationDTO> result = rule.evaluate(currentEvent, ruleContext);
+        assertTrue(result.isEmpty()); // exactly 9:30 = market hours
+    }
+
+    @Test
+    void shouldNotDetectAfterHoursSpike_tradeAtMarketClose_4_30PM(){
+        ZonedDateTime zdt = ZonedDateTime.of(
+                2026, 3, 29,
+                9, 30, 0, 0,
+                ZoneId.of("America/New_York")
+        );
+        TradeCreatedEvent currentEvent = TradeCreatedEvent.builder()
+                .symbol("AAPL")
+                .tradeTimestamp(zdt)
+                .advisorId("ADV-001")
+                .tradeId("TRD-001")
+                .build();
+        Optional<RuleViolationDTO> result = rule.evaluate(currentEvent, ruleContext);
+        assertTrue(result.isEmpty()); // exactly 9:30 = market hours
     }
 }
