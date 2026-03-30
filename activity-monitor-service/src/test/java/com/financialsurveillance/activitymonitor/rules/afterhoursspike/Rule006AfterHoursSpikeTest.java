@@ -1,9 +1,9 @@
-package com.financialsurveillance.activitymonitor.rules.latetrading;
+package com.financialsurveillance.activitymonitor.rules.afterhoursspike;
 
 import com.financialsurveillance.activitymonitor.dto.RuleContext;
 import com.financialsurveillance.activitymonitor.dto.RuleViolationDTO;
+import com.financialsurveillance.activitymonitor.rules.latetrading.Rule012LateTrading;
 import com.financialsurveillance.events.TradeCreatedEvent;
-import com.financialsurveillance.events.TradeType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +19,11 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-public class Rule012LateTradingTest {
+public class Rule006AfterHoursSpikeTest {
 
     @InjectMocks
-    private Rule012LateTrading rule;
+    private Rule006AfterHoursSpike rule;
+
     private RuleContext ruleContext;
 
     @BeforeEach
@@ -35,10 +36,10 @@ public class Rule012LateTradingTest {
     }
 
     @Test
-    void shouldDetectLateTrading_tradeAfter4(){
+    void shouldDetectAfterHoursSpike_tradeAt6PM(){
         ZonedDateTime zdt = ZonedDateTime.of(
-                2026, 3, 27,   // date
-                17, 0, 0, 0,   // 5 PM
+                2026, 3, 29,   // date
+                18, 0, 0, 0,   // 6 PM
                 ZoneId.of("America/New_York")
         );
         TradeCreatedEvent currentEvent = TradeCreatedEvent.builder()
@@ -52,10 +53,10 @@ public class Rule012LateTradingTest {
     }
 
     @Test
-    void shouldNotDetectLateTrading_tradeBefore4(){
+    void shouldDetectAfterHoursSpike_tradeAt6AM(){
         ZonedDateTime zdt = ZonedDateTime.of(
-                2026, 3, 27,   // date
-                14, 0, 0, 0,
+                2026, 3, 29,   // date
+                6, 0, 0, 0,   // 6 AM
                 ZoneId.of("America/New_York")
         );
         TradeCreatedEvent currentEvent = TradeCreatedEvent.builder()
@@ -65,15 +66,14 @@ public class Rule012LateTradingTest {
                 .tradeId("TRD-001")
                 .build();
         Optional<RuleViolationDTO> result = rule.evaluate(currentEvent, ruleContext);
-        assertTrue(result.isEmpty());
-
+        assertTrue(result.isPresent());
     }
 
     @Test
-    void shouldNotDetectLateTrading_tradeAt4(){
+    void shouldNotDetectAfterHoursSpike_tradeAt1pm(){
         ZonedDateTime zdt = ZonedDateTime.of(
-                2026, 3, 27,   // date
-                16, 0, 0, 0,   // 4 PM
+                2026, 3, 29,   // date
+                13, 0, 0, 0,   // 1 PM
                 ZoneId.of("America/New_York")
         );
         TradeCreatedEvent currentEvent = TradeCreatedEvent.builder()

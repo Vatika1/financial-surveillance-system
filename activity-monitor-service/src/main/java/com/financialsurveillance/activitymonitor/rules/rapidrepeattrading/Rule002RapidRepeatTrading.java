@@ -7,7 +7,6 @@ import com.financialsurveillance.events.AlertSeverity;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 
 @Component
