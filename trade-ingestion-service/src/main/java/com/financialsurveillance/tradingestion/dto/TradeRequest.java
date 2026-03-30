@@ -28,10 +28,10 @@ public class TradeRequest {
     @NotBlank (message = "ClientId id is required")
     private String clientId;
 
+    @Pattern(regexp = "^[A-Z]{1,5}$", message = "Symbol must be 1-5 uppercase letters")
     @NotBlank (message = "Symbol id is required")
     private String symbol;
 
-    @Pattern(regexp = "^[A-Z]{1,5}$", message = "Symbol must be 1-5 uppercase letters")
     @NotNull(message = "TradeType id is required")
     private TradeType tradeType;
 
