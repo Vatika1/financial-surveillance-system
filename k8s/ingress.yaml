@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: surveillance-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: surveillance.local
+      http:
+        paths:
+          - path: /trade-ingestion(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: trade-ingestion
+                port:
+                  number: 8081
+          - path: /activity-monitor(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: activity-monitor
+                port:
+                  number: 8082
+          - path: /alert-service(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: alert-service
+                port:
+                  number: 8083

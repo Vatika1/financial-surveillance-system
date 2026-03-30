@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-service
+  template:
+    metadata:
+      labels:
+        app: alert-service
+    spec:
+      containers:
+        - name: alert-service
+          image: alert-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/surveillance"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "surveillance"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "surveillance123"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:29092"

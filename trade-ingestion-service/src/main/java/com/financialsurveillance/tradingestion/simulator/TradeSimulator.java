@@ -6,6 +6,7 @@ import com.financialsurveillance.tradingestion.exception.DuplicateTradeException
 import com.financialsurveillance.tradingestion.exception.InvalidTradeException;
 import com.financialsurveillance.tradingestion.service.TradeIngestionService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import java.util.Random;
 import java.util.UUID;
 
 @Slf4j
+@ConditionalOnProperty(name = "trade.simulator.enabled", havingValue = "true", matchIfMissing = false)
 @Component
 public class TradeSimulator {
 

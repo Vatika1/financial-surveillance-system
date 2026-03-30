@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trade-ingestion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-ingestion
+  template:
+    metadata:
+      labels:
+        app: trade-ingestion
+    spec:
+      containers:
+        - name: trade-ingestion
+          image: trade-ingestion-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/surveillance"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "surveillance"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "surveillance123"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:29092"
