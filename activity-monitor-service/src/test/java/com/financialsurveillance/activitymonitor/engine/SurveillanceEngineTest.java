@@ -1,2 +1,4 @@
-package com.financialsurveillance.activitymonitor.engine;public class SurveillanceEngineTest {
+package com.financialsurveillance.activitymonitor.engine;
+
+public class SurveillanceEngineTest {
 }

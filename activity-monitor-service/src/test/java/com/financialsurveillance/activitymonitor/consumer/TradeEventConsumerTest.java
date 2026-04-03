@@ -1,2 +1,4 @@
-package com.financialsurveillance.activitymonitor.consumer;public class TradeEventConsumerTest {
+package com.financialsurveillance.activitymonitor.consumer;
+
+public class TradeEventConsumerTest {
 }

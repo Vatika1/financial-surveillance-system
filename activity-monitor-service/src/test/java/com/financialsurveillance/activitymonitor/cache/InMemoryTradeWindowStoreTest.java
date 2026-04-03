@@ -1,2 +1,4 @@
-package com.financialsurveillance.activitymonitor.cache;public class InMemoryTradeWindowStoreTest {
+package com.financialsurveillance.activitymonitor.cache;
+
+public class InMemoryTradeWindowStoreTest {
 }

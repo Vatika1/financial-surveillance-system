@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -90,10 +89,12 @@ public class AlertEventProducer {
 }
     private String generateAlertTypeId(String ruleId){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
-
-        return RULE_CODES.get(ruleId) + "-" + LocalDateTime.now().format(formatter);
+        String code = RULE_CODES.get(ruleId);
+        if (code == null) {
+            throw new IllegalArgumentException("Unknown rule ID: " + ruleId);
+        }
+        return code + "-" + LocalDateTime.now().format(formatter);
     }
-
 
 
 }
