@@ -31,33 +31,40 @@ public class AlertPersistedEventProducerTest {
     @InjectMocks
     private AlertPersistedEventProducer alertPersistedEventProducer;
 
+    private AlertCreatedEvent getAlertCreatedEvent(){
+        return AlertCreatedEvent.builder()
+                .alertId(UUID.fromString("11111111-1111-1111-1111-111111111111"))
+                .alertTypeId("AHS-20260327143022829")
+                .tradeId("TRADE-001")
+                .advisorId("ADVISOR-42")
+                .ruleId("RULE_006")
+                .ruleName("After Hours Trading")
+                .severity(AlertSeverity.HIGH)
+                .status(AlertStatus.OPEN)
+                .createdAt(ZonedDateTime.of(2026, 3, 27, 14, 30, 22, 0, ZoneOffset.UTC))
+                .violationDetails(null)
+                .build();
+    }
+
+    private AlertDTO getAlertDTO(){
+        return AlertDTO.builder()
+                .alertId(UUID.fromString("11111111-1111-1111-1111-111111111111"))
+                .alertTypeId("AHS-20260327143022829")
+                .tradeId("TRADE-001")
+                .advisorId("ADVISOR-42")
+                .ruleId("RULE_006")
+                .ruleName("After Hours Trading")
+                .severity(AlertSeverity.HIGH)
+                .status(AlertStatus.OPEN)
+                .createdAt(ZonedDateTime.of(2026, 3, 27, 14, 30, 22, 0, ZoneOffset.UTC))
+                .violationDetails(null)
+                .build();
+    }
+
     @Test
     void publishAlert_ShouldSuccessfullyPublish(){
-        AlertCreatedEvent event = AlertCreatedEvent.builder()
-                .alertId(UUID.fromString("11111111-1111-1111-1111-111111111111"))
-                .alertTypeId("AHS-20260327143022829")
-                .tradeId("TRADE-001")
-                .advisorId("ADVISOR-42")
-                .ruleId("RULE_006")
-                .ruleName("After Hours Trading")
-                .severity(AlertSeverity.HIGH)
-                .status(AlertStatus.OPEN)
-                .createdAt(ZonedDateTime.of(2026, 3, 27, 14, 30, 22, 0, ZoneOffset.UTC))
-                .violationDetails(null)
-                .build();
-
-        AlertDTO dto = AlertDTO.builder()
-                .alertId(UUID.fromString("11111111-1111-1111-1111-111111111111"))
-                .alertTypeId("AHS-20260327143022829")
-                .tradeId("TRADE-001")
-                .advisorId("ADVISOR-42")
-                .ruleId("RULE_006")
-                .ruleName("After Hours Trading")
-                .severity(AlertSeverity.HIGH)
-                .status(AlertStatus.OPEN)
-                .createdAt(ZonedDateTime.of(2026, 3, 27, 14, 30, 22, 0, ZoneOffset.UTC))
-                .violationDetails(null)
-                .build();
+        AlertCreatedEvent event = getAlertCreatedEvent();
+        AlertDTO dto = getAlertDTO();
 
         CompletableFuture<SendResult<String, AlertPersistedEvent>> future =
                 CompletableFuture.completedFuture(mock(SendResult.class));
@@ -69,5 +76,16 @@ public class AlertPersistedEventProducerTest {
 
         verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
 
+    }
+    @Test
+    void ShouldLogError_WhenKafkaPublishFails(){
+        AlertCreatedEvent event = getAlertCreatedEvent();
+        AlertDTO dto = getAlertDTO();
+        CompletableFuture<SendResult<String, AlertPersistedEvent>> failedFuture =
+                CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
+        when(kafkaTemplate.send(any(), any(), any()))
+                .thenReturn(failedFuture);
+        alertPersistedEventProducer.publishAlert(dto,event);
+        verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
     }
 }
