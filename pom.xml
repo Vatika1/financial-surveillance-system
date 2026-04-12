@@ -53,6 +53,7 @@
         <!-- SonarCloud -->
         <sonar.organization>vatika1</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <!--suppress UnresolvedMavenProperty -->
         <sonar.coverage.jacoco.xmlReportPaths>
             ${maven.multiModuleProjectDirectory}/trade-ingestion-service/target/site/jacoco/jacoco.xml,${maven.multiModuleProjectDirectory}/activity-monitor-service/target/site/jacoco/jacoco.xml,${maven.multiModuleProjectDirectory}/alert-service/target/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
