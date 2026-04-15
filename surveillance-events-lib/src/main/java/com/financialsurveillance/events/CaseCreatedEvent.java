@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Builder
@@ -21,6 +21,6 @@ public class CaseCreatedEvent {
 
     private CaseStatus status;       // always OPEN at creation
 
-    private Instant createdAt;
+    private ZonedDateTime createdAt;
 
 }

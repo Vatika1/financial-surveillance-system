@@ -8,11 +8,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "cases")
+@Table(name = "cases", schema = "case_management")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,11 +37,11 @@ public class Case {
     private String assignedTo;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private ZonedDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private ZonedDateTime updatedAt;
 
     @Column(name = "closed_at")
-    private Instant closedAt;
+    private ZonedDateTime closedAt;
 }

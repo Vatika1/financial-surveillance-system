@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CaseResponse {
+public class CaseDetailResponse {
     private UUID id;
 
     private UUID alertId;
@@ -25,11 +25,11 @@ public class CaseResponse {
 
     private String assignedTo;
 
-    private Instant createdAt;
+    private ZonedDateTime createdAt;
 
-    private Instant updatedAt;
+    private ZonedDateTime updatedAt;
 
-    private Instant closedAt;
+    private ZonedDateTime closedAt;
 
     private List<CaseActionResponse> auditTrails;
 }

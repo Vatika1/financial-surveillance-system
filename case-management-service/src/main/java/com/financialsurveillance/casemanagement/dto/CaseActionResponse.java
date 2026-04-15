@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Data
@@ -22,7 +22,7 @@ public class CaseActionResponse {
 
     private String performedBy;
 
-    private Instant performedAt;
+    private ZonedDateTime performedAt;
 
     private String fromValue;
 

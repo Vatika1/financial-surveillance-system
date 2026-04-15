@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Builder
@@ -24,5 +24,5 @@ public class CaseClosedEvent {
 
     private String closedBy;         // the reviewer username
 
-    private Instant closedAt;
+    private ZonedDateTime closedAt;
 }

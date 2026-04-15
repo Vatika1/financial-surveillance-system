@@ -1,16 +1,12 @@
 package com.financialsurveillance.casemanagement.dto;
 
 import com.financialsurveillance.events.CaseStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Data
@@ -29,9 +25,9 @@ public class CaseSummaryResponse {
 
     private String assignedTo;
 
-    private Instant createdAt;
+    private ZonedDateTime createdAt;
 
-    private Instant updatedAt;
+    private ZonedDateTime updatedAt;
 
-    private Instant closedAt;
+    private ZonedDateTime closedAt;
 }

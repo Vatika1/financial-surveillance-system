@@ -7,11 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "case_actions")
+@Table(name = "case_actions", schema = "case_management")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,7 +33,7 @@ public class CaseAction {
     private String performedBy;
 
     @Column(name = "performed_at", nullable = false)
-    private Instant performedAt;
+    private ZonedDateTime performedAt;
 
     @Column(name = "from_value", length = 128)
     private String fromValue;
