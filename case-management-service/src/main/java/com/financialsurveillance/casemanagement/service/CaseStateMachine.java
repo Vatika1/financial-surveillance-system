@@ -1,4 +1,4 @@
-package com.financialsurveillance.casemanagement.domain;
+package com.financialsurveillance.casemanagement.service;
 
 import com.financialsurveillance.events.CaseStatus;
 

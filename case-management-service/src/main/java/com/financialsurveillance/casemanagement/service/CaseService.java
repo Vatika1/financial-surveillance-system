@@ -3,7 +3,6 @@ package com.financialsurveillance.casemanagement.service;
 import com.financialsurveillance.casemanagement.domain.ActionType;
 import com.financialsurveillance.casemanagement.domain.Case;
 import com.financialsurveillance.casemanagement.domain.CaseAction;
-import com.financialsurveillance.casemanagement.domain.CaseStateMachine;
 import com.financialsurveillance.casemanagement.dto.AssignRequest;
 import com.financialsurveillance.casemanagement.dto.CaseActionResponse;
 import com.financialsurveillance.casemanagement.dto.CaseDetailResponse;
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor

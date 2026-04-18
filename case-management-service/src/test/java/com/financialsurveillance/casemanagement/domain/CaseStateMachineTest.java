@@ -1,5 +1,6 @@
 package com.financialsurveillance.casemanagement.domain;
 
+import com.financialsurveillance.casemanagement.service.CaseStateMachine;
 import com.financialsurveillance.events.CaseStatus;
 import org.junit.jupiter.api.Test;
 

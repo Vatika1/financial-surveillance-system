@@ -55,7 +55,10 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <!--suppress UnresolvedMavenProperty -->
         <sonar.coverage.jacoco.xmlReportPaths>
-            ${maven.multiModuleProjectDirectory}/trade-ingestion-service/target/site/jacoco/jacoco.xml,${maven.multiModuleProjectDirectory}/activity-monitor-service/target/site/jacoco/jacoco.xml,${maven.multiModuleProjectDirectory}/alert-service/target/site/jacoco/jacoco.xml
+            ${maven.multiModuleProjectDirectory}/trade-ingestion-service/target/site/jacoco/jacoco.xml,
+            ${maven.multiModuleProjectDirectory}/activity-monitor-service/target/site/jacoco/jacoco.xml,
+            ${maven.multiModuleProjectDirectory}/alert-service/target/site/jacoco/jacoco.xml,
+            ${maven.multiModuleProjectDirectory}/case-management-service/target/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.exclusions>
             **/mapper/**,
