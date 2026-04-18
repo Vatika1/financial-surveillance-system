@@ -15,4 +15,6 @@ public interface CaseRepository extends JpaRepository<Case, UUID> {
     Page<Case> findByAssignedTo(String assignedTo, Pageable pageable);
 
     Page<Case> findByAdvisorId(String advisorId, Pageable pageable);
+
+    boolean existsByAlertId(UUID alertId);
 }
