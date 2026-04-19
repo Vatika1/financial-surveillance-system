@@ -59,7 +59,7 @@ public class AlertPersistedEventProducer {
             }
             RecordMetadata metadata = result.getRecordMetadata();
             log.info(
-                    "Published AlertCreatedEvent successfully. alertId={}, alertTypeId={}, tradeId={}, advisorId={}, topic={}, partition={}, offset={}",
+                    "Published AlertPersistedEvent successfully. alertId={}, alertTypeId={}, tradeId={}, advisorId={}, topic={}, partition={}, offset={}",
                     event.getAlertId(),
                     event.getAlertTypeId(),
                     event.getTradeId(),
