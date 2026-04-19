@@ -31,3 +31,10 @@ spec:
                 name: alert-service
                 port:
                   number: 8083
+          - path: /case-management-service(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: case-management-service
+                port:
+                  number: 8084
