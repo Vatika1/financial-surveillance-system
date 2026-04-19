@@ -3,10 +3,7 @@ package com.financialsurveillance.casemanagement.service;
 import com.financialsurveillance.casemanagement.domain.ActionType;
 import com.financialsurveillance.casemanagement.domain.Case;
 import com.financialsurveillance.casemanagement.domain.CaseAction;
-import com.financialsurveillance.casemanagement.dto.AssignRequest;
-import com.financialsurveillance.casemanagement.dto.CaseActionResponse;
-import com.financialsurveillance.casemanagement.dto.CaseDetailResponse;
-import com.financialsurveillance.casemanagement.dto.TransitionRequest;
+import com.financialsurveillance.casemanagement.dto.*;
 import com.financialsurveillance.casemanagement.exception.CaseNotFoundException;
 import com.financialsurveillance.casemanagement.exception.IllegalStateTransitionException;
 import com.financialsurveillance.casemanagement.mapper.CaseMapper;
@@ -19,6 +16,8 @@ import com.financialsurveillance.events.CaseCreatedEvent;
 import com.financialsurveillance.events.CaseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +35,20 @@ public class CaseService {
     private final CaseActionRepository caseActionRepository;
     private final CaseMapper caseMapper;
 
+    public CaseDetailResponse getCaseById(UUID caseId){
+        Case caseEntity = caseRepository.findById(caseId)
+                .orElseThrow(() -> new CaseNotFoundException(caseId));
+
+        return caseMapper.toCaseDetailResponse(caseEntity);
+    }
+    public Page<CaseSummaryResponse> getAllCases(CaseStatus status,
+                                                 String assignedTo,
+                                                 String advisorId,Pageable pageable){
+
+        Page<Case> cases = caseRepository.findByFilters(status, assignedTo, advisorId, pageable);
+
+        return cases.map(caseMapper::toCaseSummaryResponse);
+    }
     @Transactional
     public void createCaseFromAlert(AlertPersistedEvent event){
         log.info("Creating case for Alert alertId={} alertTypeId={} tradeId={} advisorId={}",
