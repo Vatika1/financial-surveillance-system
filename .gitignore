@@ -4,3 +4,7 @@ target/
 *.jar 
 .env
 **/application-local.yml
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
