@@ -54,3 +54,12 @@ resource "aws_msk_cluster" "main" {
     Name = "${var.project_name}-${var.environment}-msk"
   }
 }
+
+logging_info {
+  broker_logs {
+    cloudwatch_logs {
+      enabled   = true
+      log_group = aws_cloudwatch_log_group.msk.name
+    }
+  }
+}

@@ -14,18 +14,32 @@ spec:
     spec:
       containers:
         - name: alert-service
-          image: alert-service:latest
-          imagePullPolicy: Never
+          image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/alert-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres:5432/surveillance"
+              value: "jdbc:postgresql://surveillance-prod-db.ccfkou6gmo5z.us-east-1.rds.amazonaws.com:5432/surveillance?currentSchema=alert_management"
             - name: SPRING_DATASOURCE_USERNAME
               value: "surveillance"
             - name: SPRING_DATASOURCE_PASSWORD
-              value: "surveillance123"
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:29092"
+              value: "b-1.surveillanceprod.ppyzep.c13.kafka.us-east-1.amazonaws.com:9094,b-2.surveillanceprod.ppyzep.c13.kafka.us-east-1.amazonaws.com:9094"
+            - name: SPRING_KAFKA_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL
+              value: "SSL"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"

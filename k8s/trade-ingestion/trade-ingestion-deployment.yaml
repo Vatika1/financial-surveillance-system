@@ -1,31 +1,57 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: trade-ingestion
+  name: trade-ingestion-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: trade-ingestion
+      app: trade-ingestion-service
   template:
     metadata:
       labels:
-        app: trade-ingestion
+        app: trade-ingestion-service
     spec:
       containers:
-        - name: trade-ingestion
-          image: trade-ingestion-service:latest
-          imagePullPolicy: Never
+        - name: trade-ingestion-service
+          image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/trade-ingestion-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres:5432/surveillance"
+              value: "jdbc:postgresql://surveillance-prod-db.ccfkou6gmo5z.us-east-1.rds.amazonaws.com:5432/surveillance?currentSchema=trade_ingestion"
             - name: SPRING_DATASOURCE_USERNAME
               value: "surveillance"
             - name: SPRING_DATASOURCE_PASSWORD
-              value: "surveillance123"
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:29092"
+              value: "b-1.surveillanceprod.ppyzep.c13.kafka.us-east-1.amazonaws.com:9094,b-2.surveillanceprod.ppyzep.c13.kafka.us-east-1.amazonaws.com:9094"
+            - name: SPRING_KAFKA_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL
+              value: "SSL"
+            - name: SPRING_KAFKA_PROPERTIES_SSL_ENABLED_PROTOCOLS
+              value: "TLSv1.2"
+            - name: SPRING_KAFKA_PROPERTIES_SSL_PROTOCOL
+              value: "TLSv1.2"
+            - name: SPRING_KAFKA_PROPERTIES_API_VERSION_REQUEST_TIMEOUT_MS
+              value: "60000"
+            - name: SPRING_KAFKA_PROPERTIES_RECONNECT_BACKOFF_MS
+              value: "5000"
+            - name: SPRING_KAFKA_PROPERTIES_RECONNECT_BACKOFF_MAX_MS
+              value: "30000"
+          resources:
+            requests:
+              memory: "768Mi"
+              cpu: "250m"
+            limits:
+              memory: "1280Mi"
+              cpu: "750m"

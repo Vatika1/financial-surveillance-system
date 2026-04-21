@@ -66,4 +66,4 @@ logging:
     com.financialsurveillance: DEBUG
     org.springframework.kafka: WARN
     org.hibernate: WARN
-    org.flywaydb: WARN
+    org.flywaydb: INFO

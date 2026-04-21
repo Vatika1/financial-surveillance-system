@@ -1,5 +1,6 @@
 resource "aws_secretsmanager_secret" "db_connection" {
-  name = "${var.project_name}-${var.environment}/db-connection"
+  name                    = "${var.project_name}-${var.environment}/db-connection"
+  recovery_window_in_days = 0                                                        # ← add this
 
   tags = {
     Name = "${var.project_name}-${var.environment}-db-connection"
@@ -17,7 +18,8 @@ resource "aws_secretsmanager_secret_version" "db_connection" {
 }
 
 resource "aws_secretsmanager_secret" "kafka_connection" {
-  name = "${var.project_name}-${var.environment}/kafka-connection"
+  name                    = "${var.project_name}-${var.environment}/kafka-connection"
+  recovery_window_in_days = 0                                                           # ← add this
 
   tags = {
     Name = "${var.project_name}-${var.environment}-kafka-connection"
