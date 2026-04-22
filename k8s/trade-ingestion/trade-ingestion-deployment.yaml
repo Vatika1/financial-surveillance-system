@@ -48,6 +48,20 @@ spec:
               value: "5000"
             - name: SPRING_KAFKA_PROPERTIES_RECONNECT_BACKOFF_MAX_MS
               value: "30000"
+            - name: SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+              value: ""
+            - name: SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_TYPE
+              value: "PKCS12"
+            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+              value: ""
+            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_TRUSTSTORE_TYPE
+              value: "PKCS12"
+            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_ENABLED_PROTOCOLS
+              value: "TLSv1.2"
+            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_PROTOCOL
+              value: "TLSv1.2"
+            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SECURITY_PROTOCOL
+              value: "SSL"
           resources:
             requests:
               memory: "768Mi"

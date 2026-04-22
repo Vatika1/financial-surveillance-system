@@ -53,13 +53,22 @@ resource "aws_msk_cluster" "main" {
   tags = {
     Name = "${var.project_name}-${var.environment}-msk"
   }
+
+  logging_info {
+    broker_logs {
+      cloudwatch_logs {
+        enabled   = true
+        log_group = aws_cloudwatch_log_group.msk_broker_logs.name
+      }
+    }
+  }
 }
 
-logging_info {
-  broker_logs {
-    cloudwatch_logs {
-      enabled   = true
-      log_group = aws_cloudwatch_log_group.msk.name
-    }
+resource "aws_cloudwatch_log_group" "msk_broker_logs" {
+  name              = "/aws/msk/${var.project_name}-${var.environment}"
+  retention_in_days = 7
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-msk-logs"
   }
 }
