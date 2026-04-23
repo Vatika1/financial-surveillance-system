@@ -17,3 +17,7 @@ producer-logs.txt
 refactor-logs.txt
 msk-config.json
 msk-full.json
+
+# Local setup scripts (already applied to AWS/K8s)
+setup-scripts/
+.github/workflows/*.backup

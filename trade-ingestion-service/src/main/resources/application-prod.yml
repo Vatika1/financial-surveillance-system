@@ -10,3 +10,20 @@ spring:
 trade:
   simulator:
     enabled: false
+
+# Spring Boot Actuator — for Kubernetes probes
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
