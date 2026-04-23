@@ -45,7 +45,7 @@ public class TradeEventConsumer {
             // ✅ Manual acknowledgment (only after success)
             ack.acknowledge();
 
-            log.info("Successfully processed orderId={}", event.getTradeId());
+            log.info("Successfully processed tradeId={}", event.getTradeId());
 
         } catch (Exception ex) {
             // ❗ Do NOT acknowledge → message will be retried
