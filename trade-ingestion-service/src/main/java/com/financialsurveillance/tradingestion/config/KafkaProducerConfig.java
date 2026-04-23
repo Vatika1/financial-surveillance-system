@@ -1,7 +1,9 @@
 package com.financialsurveillance.tradingestion.config;
 
 import com.financialsurveillance.events.TradeCreatedEvent;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,9 +21,12 @@ import java.util.Map;
 @EnableKafka
 public class KafkaProducerConfig {
 
-    // Inject Kafka server from application.yml
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @Value("${spring.kafka.security.protocol:PLAINTEXT}")
+    private String securityProtocol;
+
     @Bean
     public ProducerFactory<String, TradeCreatedEvent> producerFactory() {
         Map<String, Object> config = new HashMap<>();
@@ -29,25 +34,30 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-        // Ensures message is written to all replicas (strong durability)
+        // Durability: wait for all replicas to acknowledge
         config.put(ProducerConfig.ACKS_CONFIG, "all");
 
-        // Retry sending message if temporary failure
+        // Retry on transient failures
         config.put(ProducerConfig.RETRIES_CONFIG, 3);
 
-        // Helps batching for better performance
+        // Batch messages for better throughput
         config.put(ProducerConfig.LINGER_MS_CONFIG, 5);
+
+        // Apply SSL config when security protocol is SSL (prod)
+        // Keeps local dev (PLAINTEXT) working without SSL overhead
+        if ("SSL".equalsIgnoreCase(securityProtocol)) {
+            config.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+            config.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12");
+            config.put(SslConfigs.SSL_ENABLED_PROTOCOLS_CONFIG, "TLSv1.2");
+            config.put(SslConfigs.SSL_PROTOCOL_CONFIG, "TLSv1.2");
+            // Hostname verification stays at default "https" (industry standard)
+        }
 
         return new DefaultKafkaProducerFactory<>(config);
     }
 
-    /**
-     * KafkaTemplate is what your service uses to send messages.
-     * This wraps the ProducerFactory and simplifies usage.
-     */
     @Bean
     public KafkaTemplate<String, TradeCreatedEvent> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
-
 }

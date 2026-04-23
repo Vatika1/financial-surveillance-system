@@ -20,7 +20,7 @@ spec:
             - containerPort: 8081
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djavax.net.debug=ssl:handshake:verbose"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
@@ -34,34 +34,6 @@ spec:
                   key: password
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: "b-1.surveillanceprod.ppyzep.c13.kafka.us-east-1.amazonaws.com:9094,b-2.surveillanceprod.ppyzep.c13.kafka.us-east-1.amazonaws.com:9094"
-            - name: SPRING_KAFKA_SECURITY_PROTOCOL
-              value: "SSL"
-            - name: SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL
-              value: "SSL"
-            - name: SPRING_KAFKA_PROPERTIES_SSL_ENABLED_PROTOCOLS
-              value: "TLSv1.2"
-            - name: SPRING_KAFKA_PROPERTIES_SSL_PROTOCOL
-              value: "TLSv1.2"
-            - name: SPRING_KAFKA_PROPERTIES_API_VERSION_REQUEST_TIMEOUT_MS
-              value: "60000"
-            - name: SPRING_KAFKA_PROPERTIES_RECONNECT_BACKOFF_MS
-              value: "5000"
-            - name: SPRING_KAFKA_PROPERTIES_RECONNECT_BACKOFF_MAX_MS
-              value: "30000"
-            - name: SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
-              value: ""
-            - name: SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_TYPE
-              value: "PKCS12"
-            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
-              value: ""
-            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_TRUSTSTORE_TYPE
-              value: "PKCS12"
-            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_ENABLED_PROTOCOLS
-              value: "TLSv1.2"
-            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SSL_PROTOCOL
-              value: "TLSv1.2"
-            - name: SPRING_KAFKA_PRODUCER_PROPERTIES_SECURITY_PROTOCOL
-              value: "SSL"
           resources:
             requests:
               memory: "768Mi"
