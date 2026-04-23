@@ -8,3 +8,12 @@ target/
 *.tfstate
 *.tfstate.backup
 *.tfstate.lock.info
+# Debug logs (not for commit)
+*.txt
+final-logs.txt
+fresh-logs.txt
+ssl-debug.txt
+producer-logs.txt
+refactor-logs.txt
+msk-config.json
+msk-full.json
