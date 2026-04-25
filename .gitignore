@@ -7,7 +7,9 @@ target/
 .terraform/
 *.tfstate
 *.tfstate.backup
+*.tfstate.pre-migration-*
 *.tfstate.lock.info
+*.terraform.lock.hcl
 # Debug logs (not for commit)
 *.txt
 final-logs.txt
