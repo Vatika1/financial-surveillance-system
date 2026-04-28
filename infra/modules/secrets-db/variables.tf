@@ -22,8 +22,3 @@ variable "db_username" {
   description = "Database username"
   type        = string
 }
-
-variable "bootstrap_brokers" {
-  description = "MSK Kafka bootstrap brokers"
-  type        = string
-}

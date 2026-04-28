@@ -17,3 +17,8 @@ output "db_password_secret_arn" {
   description = "ARN of the secret containing the database password"
   value       = aws_db_instance.main.master_user_secret[0].secret_arn
 }
+
+output "security_group_id" {
+  description = "RDS security group ID — for ingress rules from other stacks"
+  value       = aws_security_group.rds.id
+}

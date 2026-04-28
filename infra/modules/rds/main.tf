@@ -8,19 +8,11 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
-# Security group - firewall for RDS
+# Security group - firewall for RDS (no inline ingress, no rules in this module)
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-${var.environment}-rds-sg"
   description = "Security group for RDS PostgreSQL"
   vpc_id      = var.vpc_id
-
-  ingress {
-    description     = "PostgreSQL from EKS nodes"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [var.eks_node_security_group_id]
-  }
 
   egress {
     from_port   = 0
