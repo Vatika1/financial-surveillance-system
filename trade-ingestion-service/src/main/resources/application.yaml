@@ -36,7 +36,7 @@ spring:
 kafka:
   topics:
     trades-raw: trades.raw
-    audit-events: audit.events
+    trades-raw-dlt: trades.raw.DLT
 
 management:
   endpoints:

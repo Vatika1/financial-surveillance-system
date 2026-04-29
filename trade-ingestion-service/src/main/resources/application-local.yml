@@ -8,4 +8,4 @@ spring:
     bootstrap-servers: localhost:9092
 trade:
   simulator:
-    enabled: true
+    enabled: false

@@ -27,6 +27,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(TradePublishException.class)
+    public ResponseEntity<ErrorResponse> handlePublishFailure(TradePublishException  ex,
+                                                              HttpServletRequest request){
+        log.error("Trade publish failed, returning 503: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                503,
+                "Service Unavailable",
+                ex.getMessage(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
     @ExceptionHandler(InvalidTradeException.class)
     public ResponseEntity<ErrorResponse> handleInvalidTrade(InvalidTradeException ex,
                                                             HttpServletRequest request){

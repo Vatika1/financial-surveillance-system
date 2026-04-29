@@ -30,8 +30,8 @@ public class TradeEventConsumer {
             }
 
             // ✅ Idempotency check (very important in real systems)
-//            if (idempotencyService.isProcessed(event.getOrderId())) {
-//                log.warn("Duplicate event received for orderId={}", event.getOrderId());
+//            if (idempotencyService.isProcessed(event.getTradeId())) {
+//                log.warn("Duplicate event received for tradeId={}", event.getTradeId());
 //                ack.acknowledge();
 //                return;
 //            }
