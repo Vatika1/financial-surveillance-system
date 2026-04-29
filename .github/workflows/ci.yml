@@ -95,7 +95,6 @@ jobs:
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/surveillance-prod/trade-ingestion-service:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/surveillance-prod/trade-ingestion-service:latest
 
       - name: Build & push activity-monitor-service
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'activity-monitor-service' }}
@@ -106,7 +105,6 @@ jobs:
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/surveillance-prod/activity-monitor-service:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/surveillance-prod/activity-monitor-service:latest
 
       - name: Build & push alert-service
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'alert-service' }}
@@ -117,7 +115,6 @@ jobs:
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/surveillance-prod/alert-service:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/surveillance-prod/alert-service:latest
 
       - name: Build & push case-management-service
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'case-management-service' }}
@@ -128,7 +125,6 @@ jobs:
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/surveillance-prod/case-management-service:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/surveillance-prod/case-management-service:latest
 
       # -----------------------------
       # Deploy to EKS
