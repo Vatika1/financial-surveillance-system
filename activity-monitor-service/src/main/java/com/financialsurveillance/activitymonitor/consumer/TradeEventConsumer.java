@@ -17,7 +17,7 @@ public class TradeEventConsumer {
     @KafkaListener(
             topics = "${kafka.topics.trades-raw}",
             groupId = "activity-monitor-service",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "tradeKafkaListenerContainerFactory"
     )
     public void consume(TradeCreatedEvent event, Acknowledgment ack){
 
