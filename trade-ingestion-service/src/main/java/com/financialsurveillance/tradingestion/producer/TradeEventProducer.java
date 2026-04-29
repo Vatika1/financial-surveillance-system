@@ -17,10 +17,22 @@ import java.util.concurrent.TimeoutException;
 /**
  * Publishes trade lifecycle events to Kafka.
  *
- * Sends synchronously with a bounded timeout so failures surface to the
+ * <p>Sends synchronously with a bounded timeout so failures surface to the
  * caller and can trigger transactional rollback. Translates Kafka-specific
  * exceptions into a single domain exception (TradePublishException) so
  * upstream code doesn't need to know about Kafka error types.
+ *
+ * <p><b>Why no producer-side DLQ:</b> trade-ingestion is REST-fronted, so
+ * the HTTP caller IS the retry mechanism. On publish failure we roll back
+ * the DB and return 503; the caller retries. A producer DLQ here would
+ * accumulate orphan messages with no corresponding DB row and no consumer
+ * waiting for them. Producer DLQs make sense for asynchronous producers
+ * (scheduled jobs, stream-to-stream forwarders) where there's no caller
+ * to fail back to.
+ *
+ * <p>The {@code trades.raw.DLT} topic IS declared (in KafkaTopicConfig)
+ * because activity-monitor will route poison-pill messages there during
+ * consumer-side error handling.
  */
 @Slf4j
 @Component
