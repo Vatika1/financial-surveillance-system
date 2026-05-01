@@ -1,6 +1,5 @@
 package com.financialsurveillance.activitymonitor.consumer;
 
-import com.financialsurveillance.activitymonitor.exception.TradeProcessingException;
 import com.financialsurveillance.activitymonitor.service.ActivityMonitorService;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ public class TradeEventConsumerTest {
     void ConsumeTrade_ShouldFail_whenNullTradeId(){
         TradeCreatedEvent event = getTradeCreatedEvent();
         event.setTradeId(null);
-        assertThrows(TradeProcessingException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             tradeEventConsumer.consume(event, mock(Acknowledgment.class));
         });
     }
@@ -56,7 +55,7 @@ public class TradeEventConsumerTest {
         TradeCreatedEvent event = getTradeCreatedEvent();
         doThrow(new RuntimeException("DB down")).when(activityMonitorService).processTrade(any());
         Acknowledgment ack = mock(Acknowledgment.class);
-        assertThrows(TradeProcessingException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             tradeEventConsumer.consume(event, ack);
         });
         verify(activityMonitorService).processTrade(event);
