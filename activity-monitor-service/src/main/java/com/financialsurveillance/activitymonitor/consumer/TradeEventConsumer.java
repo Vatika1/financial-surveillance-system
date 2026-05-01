@@ -1,6 +1,5 @@
 package com.financialsurveillance.activitymonitor.consumer;
 
-import com.financialsurveillance.activitymonitor.exception.TradeProcessingException;
 import com.financialsurveillance.activitymonitor.service.ActivityMonitorService;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -14,43 +13,23 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TradeEventConsumer {
     private final ActivityMonitorService activityMonitorService;
+
     @KafkaListener(
             topics = "${kafka.topics.trades-raw}",
             groupId = "activity-monitor-service",
             containerFactory = "tradeKafkaListenerContainerFactory"
     )
-    public void consume(TradeCreatedEvent event, Acknowledgment ack){
+    public void consume(TradeCreatedEvent event, Acknowledgment ack) {
+        log.info("Received trade: tradeId={}, advisorId={}", event.getTradeId(), event.getAdvisorId());
 
-        try {
-            log.info("Received trade: tradeId={}, advisorId={}", event.getTradeId(), event.getAdvisorId());
-
-            // ✅ Validation
-            if (event.getTradeId() == null) {
-                throw new IllegalArgumentException("Invalid event: missing required fields");
-            }
-
-            // ✅ Idempotency check (very important in real systems)
-//            if (idempotencyService.isProcessed(event.getTradeId())) {
-//                log.warn("Duplicate event received for tradeId={}", event.getTradeId());
-//                ack.acknowledge();
-//                return;
-//            }
-
-            // ✅ Business logic
-            activityMonitorService.processTrade(event);
-
-            // ✅ Mark processed
-            //idempotencyService.markProcessed(event.getOrderId());
-
-            // ✅ Manual acknowledgment (only after success)
-            ack.acknowledge();
-
-            log.info("Successfully processed tradeId={}", event.getTradeId());
-
-        } catch (Exception ex) {
-            // ❗ Do NOT acknowledge → message will be retried
-            // Depending on config: retry / DLQ
-            throw new TradeProcessingException(event.getTradeId(), event.getAdvisorId(), ex);
+        if (event.getTradeId() == null) {
+            throw new IllegalArgumentException("Invalid event: missing required fields");
         }
+
+        activityMonitorService.processTrade(event);
+
+        ack.acknowledge();
+
+        log.info("Successfully processed tradeId={}", event.getTradeId());
     }
 }
