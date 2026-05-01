@@ -19,7 +19,7 @@ import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -94,8 +94,10 @@ public class KafkaConsumerConfig {
                         )
                 );
 
-        // 2️⃣ Retry config → 3 retries, 2 sec delay
-        FixedBackOff backOff = new FixedBackOff(2000L, 3);
+        // 2️⃣ Retry config → exponential: 1s, 2s, 4s (capped at 10s), 3 retries
+        ExponentialBackOff backOff = new ExponentialBackOff(1000L, 2.0);
+        backOff.setMaxAttempts(3);
+        backOff.setMaxInterval(10000L);
 
         // 3️⃣ Main error handler
         DefaultErrorHandler errorHandler =
