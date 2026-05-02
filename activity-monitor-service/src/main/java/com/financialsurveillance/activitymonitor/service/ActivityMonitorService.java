@@ -34,6 +34,11 @@ public class ActivityMonitorService {
 
     @Transactional
     public void processTrade(TradeCreatedEvent event){
+        // TODO: Same dual-write pattern as fixed in trade-ingestion.
+        // AlertEventProducer.publishAlert should block with timeout and throw
+        // on failure to roll back the @Transactional. Will be addressed in
+        // Phase 2 Day 7 when applying the pattern to all consumer producers.
+
         tradeWindowStore.addTrade(event.getAdvisorId(), event);
         List<TradeCreatedEvent> recentTrades = tradeWindowStore.getRecentTrades(event.getAdvisorId(), Duration.ofSeconds(60));
 
