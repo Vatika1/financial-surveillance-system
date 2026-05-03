@@ -17,11 +17,24 @@ public class InMemoryTradeWindowStore implements TradeWindowStore{
 
     private final ConcurrentHashMap<String, List<TradeCreatedEvent>> recentTrades = new ConcurrentHashMap<>();
 
+    private static final Duration WINDOW = Duration.ofSeconds(60);
+
     @Override
     public void addTrade(String advisorId, TradeCreatedEvent trade) {
         recentTrades
                 .computeIfAbsent(advisorId, k -> new CopyOnWriteArrayList<>())
                 .add(trade);
+    }
+
+    @Override
+    public void removeTrade(String advisorId, TradeCreatedEvent trade) {
+        List<TradeCreatedEvent> trades = recentTrades.get(advisorId);
+        if (trades != null) {
+            trades.remove(trade);
+            if (trades.isEmpty()) {
+                recentTrades.remove(advisorId);
+            }
+        }
     }
 
     @Override
@@ -40,7 +53,7 @@ public class InMemoryTradeWindowStore implements TradeWindowStore{
     @Scheduled(fixedDelay = 60000)
     public void cleanUpTrades() {
 
-        ZonedDateTime cutoff = ZonedDateTime.now().minus(Duration.ofSeconds(60));
+        ZonedDateTime cutoff = ZonedDateTime.now().minus(WINDOW);
         for (Map.Entry<String, List<TradeCreatedEvent>> entry : recentTrades.entrySet()) {
             String advisorId = entry.getKey();
             List<TradeCreatedEvent> trades = entry.getValue();

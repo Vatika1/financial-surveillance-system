@@ -1,11 +1,11 @@
 package com.financialsurveillance.activitymonitor.producer;
 
 import com.financialsurveillance.activitymonitor.dto.RuleViolationDTO;
+import com.financialsurveillance.activitymonitor.exception.AlertPublishException;
 import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertStatus;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,11 +13,14 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class AlertEventProducer {
     @Value("${kafka.topics.alerts-created}")
     private String topic;
 
+    private static final Duration SEND_TIMEOUT = Duration.ofSeconds(5);
     private static final Logger log = LoggerFactory.getLogger(AlertEventProducer.class);
     private static final Map<String, String> RULE_CODES = Map.ofEntries(
             Map.entry("RULE_001", "LTS"),
@@ -60,32 +64,40 @@ public class AlertEventProducer {
                 .status(AlertStatus.OPEN)
                 .build();
 
-        CompletableFuture<SendResult<String, AlertCreatedEvent>> future =
-                kafkaTemplate.send(topic, key, alertCreatedEvent);
+        try {
+            SendResult<String, AlertCreatedEvent> result = kafkaTemplate
+                    .send(topic, key, alertCreatedEvent)
+                    .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
-        future.whenComplete((result, throwable) -> {
-            if (throwable != null) {
-                log.error(
-                        "Failed to publish AlertCreatedEvent. tradeEventId={}, tradeId={}, topic={}",
-                        event.getId(),
-                        event.getTradeId(),
-                        topic,
-                        throwable
-                );
-                return;
-            }
-            RecordMetadata metadata = result.getRecordMetadata();
-            log.info(
-                    "Published AlertCreatedEvent successfully. tradeEventId={}, alertEventId={}, tradeId={}, topic={}, partition={}, offset={}",
-                    event.getId(),
-                    alertCreatedEvent.getAlertId(),
+            log.info("Published AlertCreatedEvent. tradeId={} alertId={} topic={} partition={} offset={}",
                     alertCreatedEvent.getTradeId(),
-                    metadata.topic(),
-                    metadata.partition(),
-                    metadata.offset()
-            );
+                    alertCreatedEvent.getAlertId(),
+                    result.getRecordMetadata().topic(),
+                    result.getRecordMetadata().partition(),
+                    result.getRecordMetadata().offset());
 
-    });
+        } catch (TimeoutException e) {
+            log.error("Kafka send timed out tradeId={} alertId={} timeoutMs={}",
+                    alertCreatedEvent.getTradeId(),
+                    alertCreatedEvent.getAlertId(),
+                    SEND_TIMEOUT.toMillis(), e);
+            throw new AlertPublishException(
+                    "Kafka publish timed out for alertId=" + alertCreatedEvent.getAlertId(), e);
+
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            log.error("Kafka send failed tradeId={} alertId={} cause={}",
+                    alertCreatedEvent.getTradeId(),
+                    alertCreatedEvent.getAlertId(),
+                    cause.getMessage(), cause);
+            throw new AlertPublishException(
+                    "Kafka publish failed for alertId=" + alertCreatedEvent.getAlertId(), cause);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AlertPublishException(
+                    "Interrupted while publishing alertId=" + alertCreatedEvent.getAlertId(), e);
+        }
 }
     private String generateAlertTypeId(String ruleId){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");

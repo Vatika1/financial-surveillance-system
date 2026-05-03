@@ -1,7 +1,5 @@
 package com.financialsurveillance.activitymonitor.consumer;
 
-import com.financialsurveillance.activitymonitor.service.ActivityMonitorService;
-import com.financialsurveillance.activitymonitor.service.IdempotencyService;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

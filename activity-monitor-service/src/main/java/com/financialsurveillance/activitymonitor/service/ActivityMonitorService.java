@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.util.List;
@@ -30,26 +32,34 @@ public class ActivityMonitorService {
     private final AlertEventProducer alertEventProducer;
     private final static Set<String> RESTRICTED_SYMBOLS = Set.of("AAPL", "TSLA", "MSFT", "GOOGL", "AMZN");
     private final RuleViolationMapper ruleViolationMapper;
+    private static final Duration WINDOW = Duration.ofSeconds(60);
 
 
     @Transactional
-    public void processTrade(TradeCreatedEvent event){
-        // TODO: Same dual-write pattern as fixed in trade-ingestion.
-        // AlertEventProducer.publishAlert should block with timeout and throw
-        // on failure to roll back the @Transactional. Will be addressed in
-        // Phase 2 Day 7 when applying the pattern to all consumer producers.
-
+    public void processTrade(TradeCreatedEvent event) {
         tradeWindowStore.addTrade(event.getAdvisorId(), event);
-        List<TradeCreatedEvent> recentTrades = tradeWindowStore.getRecentTrades(event.getAdvisorId(), Duration.ofSeconds(60));
+
+        // Compensating action: if the transaction rolls back, undo the in-memory write.
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status == STATUS_ROLLED_BACK) {
+                            tradeWindowStore.removeTrade(event.getAdvisorId(), event);
+                        }
+                    }
+                });
+
+        List<TradeCreatedEvent> recentTrades =
+                tradeWindowStore.getRecentTrades(event.getAdvisorId(), WINDOW);
 
         RuleContext ruleContext = new RuleContext(recentTrades, RESTRICTED_SYMBOLS, Optional.empty());
-
         List<RuleViolationDTO> violationList = surveillanceEngine.evaluate(event, ruleContext);
 
-        for(RuleViolationDTO violation: violationList){
+        for (RuleViolationDTO violation : violationList) {
             RuleViolation violationObj = ruleViolationMapper.toEntity(violation);
             ruleViolationRepository.save(violationObj);
-            alertEventProducer.publishAlert(violation,event);
+            alertEventProducer.publishAlert(violation, event);
         }
     }
 

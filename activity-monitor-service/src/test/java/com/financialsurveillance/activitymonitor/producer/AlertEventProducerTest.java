@@ -1,10 +1,14 @@
 package com.financialsurveillance.activitymonitor.producer;
 
 import com.financialsurveillance.activitymonitor.dto.RuleViolationDTO;
+import com.financialsurveillance.activitymonitor.exception.AlertPublishException;
 import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertPersistedEvent;
 import com.financialsurveillance.events.AlertSeverity;
 import com.financialsurveillance.events.TradeCreatedEvent;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +21,7 @@ import org.springframework.kafka.support.SendResult;
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -59,30 +64,40 @@ public class AlertEventProducerTest {
 
         RuleViolationDTO violation = getRuleViolationDTO();
 
-        CompletableFuture<SendResult<String, AlertCreatedEvent>> future =
-                CompletableFuture.completedFuture(mock(SendResult.class));
+        RecordMetadata metadata = new RecordMetadata(
+                new TopicPartition("alerts.created", 0),  // topic, partition
+                0L, 0, 0L, 0, 0                            // offset + others
+        );
+        ProducerRecord<String, AlertCreatedEvent> producerRecord =
+                new ProducerRecord<>("alerts.created", event.getAdvisorId(), null);
+        SendResult<String, AlertCreatedEvent> sendResult =
+                new SendResult<>(producerRecord, metadata);
 
         when(kafkaTemplate.send(any(), any(), any()))
-                .thenReturn(future);
+                .thenReturn(CompletableFuture.completedFuture(sendResult));
         alertEventProducer.publishAlert(violation, event);
         verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertCreatedEvent.class));
 
     }
     @Test
-     void publishAlert_ShouldLogError_WhenKafkaPublishFails(){
+    void publishAlert_ShouldThrowAlertPublishException_WhenKafkaPublishFails() {
         TradeCreatedEvent event = getAlertCreatedEvent();
-
         RuleViolationDTO violation = getRuleViolationDTO();
+
         CompletableFuture<SendResult<String, AlertCreatedEvent>> failedFuture =
                 CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
-        when(kafkaTemplate.send(any(), any(), any()))
-                .thenReturn(failedFuture);
+        when(kafkaTemplate.send(any(), any(), any())).thenReturn(failedFuture);
 
-        alertEventProducer.publishAlert(violation, event);
+        AlertPublishException ex = assertThrows(
+                AlertPublishException.class,
+                () -> alertEventProducer.publishAlert(violation, event)
+        );
+
+        // optional: assert the message or cause to confirm we hit the right catch block
+        assertThat(ex.getMessage()).contains("Kafka publish failed");
 
         verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertCreatedEvent.class));
-     }
-
+    }
     @Test
     void publishAlert_ShouldPublish_WithUnknownRuleId(){
         TradeCreatedEvent event = getAlertCreatedEvent();
