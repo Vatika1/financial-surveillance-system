@@ -1,11 +1,15 @@
 server:
   port: 8081
+  shutdown: graceful
 
 spring:
   application:
     name: trade-ingestion-service
   profiles:
     active: local
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
   datasource:
     driver-class-name: org.postgresql.Driver

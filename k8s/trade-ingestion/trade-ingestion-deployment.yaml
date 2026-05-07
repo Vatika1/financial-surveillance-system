@@ -12,6 +12,7 @@ spec:
       labels:
         app: trade-ingestion-service
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: trade-ingestion-service
           image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/trade-ingestion-service:latest
