@@ -68,7 +68,7 @@ $timeout = 180
 $elapsed = 0
 $allReady = $false
 while ($elapsed -lt $timeout) {
-    $notRunning = kubectl get pods -o jsonpath='{.items[?(@.status.phase!="Running")].metadata.name}' 2>$null
+    $notRunning = kubectl get pods --field-selector=status.phase!=Running -o name
     if ([string]::IsNullOrWhiteSpace($notRunning)) {
         Write-Host "All pods running." -ForegroundColor Green
         $allReady = $true
