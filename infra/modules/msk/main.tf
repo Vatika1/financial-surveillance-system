@@ -72,3 +72,20 @@ resource "aws_cloudwatch_log_group" "msk_broker_logs" {
     Name = "${var.project_name}-${var.environment}-msk-logs"
   }
 }
+
+# Bootstrap brokers stored in Secrets Manager
+# Updated automatically every time the MSK cluster is recreated
+resource "aws_secretsmanager_secret" "msk_bootstrap_brokers" {
+  name                    = "${var.project_name}-${var.environment}-msk-bootstrap-brokers"
+  description             = "TLS bootstrap broker connection string for MSK cluster"
+  recovery_window_in_days = 0  # immediate deletion on destroy (ephemeral stack)
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-msk-bootstrap-brokers"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "msk_bootstrap_brokers" {
+  secret_id     = aws_secretsmanager_secret.msk_bootstrap_brokers.id
+  secret_string = aws_msk_cluster.main.bootstrap_brokers_tls
+}

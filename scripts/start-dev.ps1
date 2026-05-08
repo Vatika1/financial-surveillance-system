@@ -27,8 +27,8 @@ kubectl apply -f (Join-Path $setupScriptsPath "aws-auth.yaml")
 kubectl apply -f (Join-Path $setupScriptsPath "github-actions-role.yaml")
 kubectl apply -f (Join-Path $setupScriptsPath "github-actions-binding.yaml")
 
-# ===== STEP 4: Recreate K8s Secrets from AWS Secrets Manager =====
-Write-Host "`n[4/5] Recreating K8s Secret 'db-secret' from AWS Secrets Manager..." -ForegroundColor Cyan
+# ===== STEP 4a: Recreate K8s Secret 'db-secret' from AWS Secrets Manager =====
+Write-Host "`n[4a/5] Recreating K8s Secret 'db-secret' from AWS Secrets Manager..." -ForegroundColor Cyan
 
 # Find the RDS-managed password secret ARN
 $rdsSecretArn = aws rds describe-db-instances `
@@ -54,6 +54,26 @@ kubectl create secret generic db-secret `
   --dry-run=client -o yaml | kubectl apply -f -
 
 if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create db-secret" -ForegroundColor Red; exit 1 }
+
+# ===== STEP 4b: Recreate K8s Secret 'msk-secret' from AWS Secrets Manager =====
+Write-Host "`n[4b/5] Recreating K8s Secret 'msk-secret' from AWS Secrets Manager..." -ForegroundColor Cyan
+
+$mskBrokers = aws secretsmanager get-secret-value `
+  --secret-id "surveillance-prod-msk-bootstrap-brokers" `
+  --region us-east-1 `
+  --query SecretString `
+  --output text
+
+if ([string]::IsNullOrWhiteSpace($mskBrokers)) {
+    Write-Host "Could not fetch MSK brokers from Secrets Manager" -ForegroundColor Red
+    exit 1
+}
+
+kubectl create secret generic msk-secret `
+  --from-literal=brokers=$mskBrokers `
+  --dry-run=client -o yaml | kubectl apply -f -
+
+if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create msk-secret" -ForegroundColor Red; exit 1 }
 
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan

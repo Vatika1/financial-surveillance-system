@@ -34,7 +34,10 @@ spec:
                   name: db-secret
                   key: password
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-              value: "b-2.surveillanceprod.5m8kk8.c11.kafka.us-east-1.amazonaws.com:9094,b-1.surveillanceprod.5m8kk8.c11.kafka.us-east-1.amazonaws.com:9094"
+              valueFrom:
+                secretKeyRef:
+                  name: msk-secret
+                  key: brokers
           resources:
             requests:
               memory: "768Mi"
