@@ -41,7 +41,9 @@ public class KafkaProducerConfig {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
-        // Durability: wait for all replicas to acknowledge
+        // acks=all + min.insync.replicas=2 (set at topic level) means both
+        // brokers must ack before a write succeeds. Pairs with the dual-write
+        // fix — if a broker is down, producer throws and @Transactional rolls back.
         props.put(ProducerConfig.ACKS_CONFIG, "all");
 
         // Idempotent producer to prevent duplicate messages on retry
