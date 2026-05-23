@@ -23,3 +23,7 @@ msk-full.json
 # Local setup scripts (already applied to AWS/K8s)
 setup-scripts/
 .github/workflows/*.backup
+
+# Claude Code harness — per-machine local state, not source-of-truth
+.claude/agent-memory/
+.claude/settings.local.json
