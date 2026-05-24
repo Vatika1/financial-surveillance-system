@@ -1,7 +1,8 @@
-target/ 
-.idea/ 
-*.class 
-*.jar 
+target/
+.idea/
+*.iml
+*.class
+*.jar
 .env
 **/application-local.yml
 .terraform/
