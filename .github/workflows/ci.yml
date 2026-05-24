@@ -135,27 +135,31 @@ jobs:
       - name: Deploy trade-ingestion-service to EKS
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'trade-ingestion-service' }}
         run: |
-          kubectl set image deployment/trade-ingestion-service \
-            trade-ingestion-service=${{ env.ECR_REGISTRY }}/surveillance-prod/trade-ingestion-service:${{ env.IMAGE_TAG }}
+          sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s/trade-ingestion/trade-ingestion-deployment.yaml
+          kubectl apply -f k8s/trade-ingestion/trade-ingestion-deployment.yaml
+          kubectl apply -f k8s/trade-ingestion/trade-ingestion-service.yaml
           kubectl rollout status deployment/trade-ingestion-service --timeout=5m
 
       - name: Deploy activity-monitor-service to EKS
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'activity-monitor-service' }}
         run: |
-          kubectl set image deployment/activity-monitor-service \
-            activity-monitor-service=${{ env.ECR_REGISTRY }}/surveillance-prod/activity-monitor-service:${{ env.IMAGE_TAG }}
+          sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s/activity-monitor/activity-monitor-deployment.yaml
+          kubectl apply -f k8s/activity-monitor/activity-monitor-deployment.yaml
+          kubectl apply -f k8s/activity-monitor/activity-monitor-service.yaml
           kubectl rollout status deployment/activity-monitor-service --timeout=5m
 
       - name: Deploy alert-service to EKS
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'alert-service' }}
         run: |
-          kubectl set image deployment/alert-service \
-            alert-service=${{ env.ECR_REGISTRY }}/surveillance-prod/alert-service:${{ env.IMAGE_TAG }}
+          sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s/alert-service/alert-service-deployment.yaml
+          kubectl apply -f k8s/alert-service/alert-service-deployment.yaml
+          kubectl apply -f k8s/alert-service/alert-service-service.yaml
           kubectl rollout status deployment/alert-service --timeout=5m
 
       - name: Deploy case-management-service to EKS
         if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'case-management-service' }}
         run: |
-          kubectl set image deployment/case-management-service \
-            case-management-service=${{ env.ECR_REGISTRY }}/surveillance-prod/case-management-service:${{ env.IMAGE_TAG }}
+          sed -i "s|:latest|:${{ env.IMAGE_TAG }}|g" k8s/case-management/case-management-deployment.yaml
+          kubectl apply -f k8s/case-management/case-management-deployment.yaml
+          kubectl apply -f k8s/case-management/case-management-service.yaml
           kubectl rollout status deployment/case-management-service --timeout=5m
