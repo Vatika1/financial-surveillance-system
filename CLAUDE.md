@@ -134,12 +134,12 @@ exception/   Domain exceptions + @RestControllerAdvice
 
 Topic names live in `application.yaml` under `kafka.topics.*` and are read via `@ConfigurationProperties` beans. Never hardcode topic strings in producer/consumer classes.
 
-## Current state — sprint snapshot (2026-05-22)
+## Current state — sprint snapshot (2026-05-23)
 
 **Phase 1 — Terraform foundation: DONE.**
 
 **Phase 2 — hardening + DLQ + Testcontainers: IN PROGRESS.**
-- `trade-ingestion`: dual-write shipped, manifest hardening shipped, NLB shipped, graceful shutdown shipped. Remaining: `replicas=2`, document `min.insync.replicas`, declare `trades.raw.DLT` topic.
+- `trade-ingestion`: **DONE** — dual-write, manifest hardening, NLB, graceful shutdown, topic durability (`replicas=2`, `min.insync.replicas=2`), `trades.raw.DLT` declared, K8s `replicas=2`, aggregate startup probe. Baseline for the other services.
 - `activity-monitor`: dual-write shipped (with `TransactionSynchronization` rollback for `TradeWindowStore`), Chunks 2/3/4 shipped. Remaining: Chunk 5 manifest hardening.
 - `alert-service`: not started.
 - `case-management`: not started.
