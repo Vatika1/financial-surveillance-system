@@ -1,0 +1,83 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy", "Bypass",
+              "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-latest-tag.ps1"
+            ]
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy", "Bypass",
+              "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/bash-guard.ps1"
+            ]
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy", "Bypass",
+              "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/mvn-compile.ps1"
+            ],
+            "timeout": 300
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy", "Bypass",
+              "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.ps1"
+            ]
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy", "Bypass",
+              "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-stop.ps1"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
