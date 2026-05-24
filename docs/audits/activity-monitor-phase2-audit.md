@@ -143,7 +143,7 @@ Checklist source note: there is no standalone Phase 2 checklist document in the 
 
 2. **`alerts.created` topic is single-replica, no `min.insync.replicas`, no DLT declared** — `acks=all` on the producer is effectively `acks=1` here. This is the same Phase 2 durability gap that trade-ingestion just closed; activity-monitor needs the equivalent fix. File: `KafkaTopicConfig.java:11-16`.
 
-3. **Topic naming drift between CLAUDE.md and code** — CLAUDE.md documents the topic as `alerts.raw` / `alerts.raw.DLT` but the code, config, and `alert-service` consumer all use `alerts.created`. Either CLAUDE.md is stale or the code is wrong. Surfacing for explicit resolution before remediating item 2 (you don't want to declare a DLT for the wrong name). Files: `CLAUDE.md:33,34,79,132` vs `application.yaml:52`, `KafkaTopicConfig.java:12`.
+3. ~~Topic naming drift between CLAUDE.md and code.~~ **RESOLVED 2026-05-23**: `alerts.created` confirmed canonical; CLAUDE.md updated at lines 33, 34, 79, 132.
 
 4. **No `server.shutdown: graceful` / `spring.lifecycle.timeout-per-shutdown-phase`** — `application.yaml` for activity-monitor is missing both. Risk: SIGTERM during `processTrade` can abort a transaction after `tradeWindowStore.addTrade` and after DB insert but before the Kafka send returns, leaving the rollback `TransactionSynchronization` to fire (good) but Spring may not give the listener container time to finish polling/acking. Combined with no `terminationGracePeriodSeconds`, this is an availability bug. File: `application.yaml` (compare to `trade-ingestion-service/src/main/resources/application.yaml:2-12`).
 
@@ -155,9 +155,9 @@ Checklist source note: there is no standalone Phase 2 checklist document in the 
 
 ## Recommended remediations (ordered)
 
-1. **Resolve the topic naming drift** (issue #3) before touching topic config. Confirm whether the canonical name is `alerts.created` (code wins) or `alerts.raw` (CLAUDE.md wins). Once decided, update the loser.
+1. ✅ **DONE 2026-05-23** — Resolved topic naming drift (issue #3). Canonical name is `alerts.created`; CLAUDE.md updated.
 
-2. **Harden `alerts.created` (or `alerts.raw`) topic in `KafkaTopicConfig.java`** — match the trade-ingestion baseline:
+2. **Harden `alerts.created` topic in `KafkaTopicConfig.java`** — match the trade-ingestion baseline:
    ```java
    private static final int PARTITIONS = 3;
    private static final short REPLICAS = 2;
@@ -229,7 +229,7 @@ Net: activity-monitor is structurally **behind** the trade-ingestion baseline. C
 
 To mark activity-monitor's Phase 2 chunk complete (in priority order):
 
-1. [ ] Resolve `alerts.raw` vs `alerts.created` naming (touches CLAUDE.md too).
+1. [x] Resolve `alerts.raw` vs `alerts.created` naming — done 2026-05-23, canonical = `alerts.created`.
 2. [ ] `KafkaTopicConfig`: bump alerts topic to `replicas=2`, add `MIN_IN_SYNC_REPLICAS=2`, declare DLT.
 3. [ ] `application.yaml`: add `server.shutdown: graceful`, `spring.lifecycle.timeout-per-shutdown-phase: 30s`, add `kafka.topics.alerts-created-dlt`.
 4. [ ] `k8s/activity-monitor/activity-monitor-deployment.yaml`: replicas=2, probes (startup/liveness/readiness), `terminationGracePeriodSeconds: 60`, `JAVA_TOOL_OPTIONS`, producer SSL envs, review the empty `SSL_ENDPOINT_IDENTIFICATION_ALGORITHM`.

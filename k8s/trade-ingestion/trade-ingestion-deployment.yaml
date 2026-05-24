@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: trade-ingestion-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: trade-ingestion-service
@@ -47,7 +47,7 @@ spec:
               cpu: "750m"
           startupProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health
               port: 8081
             initialDelaySeconds: 30
             periodSeconds: 5

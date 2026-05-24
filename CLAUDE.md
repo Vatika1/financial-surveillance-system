@@ -30,8 +30,8 @@ Multi-module Maven project (parent `pom.xml` at root). Four runtime services plu
 |---|---|---|
 | `surveillance-events-lib` | Shared Kafka event DTOs — every service depends on this | — |
 | `trade-ingestion-service` | REST entry (`POST /api/trades`), publishes to `trades.raw`, exposed via public NLB | 8081 |
-| `activity-monitor-service` | Consumes `trades.raw`, runs rule engine, publishes to `alerts.raw` | 8082 |
-| `alert-service` | Consumes `alerts.raw`, persists alerts, publishes to the cases topic | 8083 |
+| `activity-monitor-service` | Consumes `trades.raw`, runs rule engine, publishes to `alerts.created` | 8082 |
+| `alert-service` | Consumes `alerts.created`, persists alerts, publishes to the cases topic | 8083 |
 | `case-management-service` | Terminal consumer (case lifecycle) | — |
 
 Older modules (`notification-service`, `audit-service`, `reporting-service`, `user-service`) exist as directories but are commented out in the parent `pom.xml` — they don't build.
@@ -76,7 +76,7 @@ Push to `master`/`main`: tests → build → SonarCloud → push 4 images to ECR
 ```
 POST /api/trades
   → trade-ingestion (DB insert + publish → trades.raw)
-    → activity-monitor (rule engine + publish → alerts.raw)
+    → activity-monitor (rule engine + publish → alerts.created)
       → alert-service (persist alert + publish → cases topic)
         → case-management (terminal)
 ```
@@ -129,7 +129,7 @@ exception/   Domain exceptions + @RestControllerAdvice
 | Topic | Producer | Consumer | DLT |
 |---|---|---|---|
 | `trades.raw` | trade-ingestion | activity-monitor | `trades.raw.DLT` |
-| `alerts.raw` | activity-monitor | alert-service | `alerts.raw.DLT` |
+| `alerts.created` | activity-monitor | alert-service | `alerts.created.DLT` |
 | (cases topic) | alert-service | case-management | — |
 
 Topic names live in `application.yaml` under `kafka.topics.*` and are read via `@ConfigurationProperties` beans. Never hardcode topic strings in producer/consumer classes.
