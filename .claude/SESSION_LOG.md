@@ -31,22 +31,39 @@
 - [ ] End-to-end smoke test (trade via NLB → 4-service chain → case in DB)
 - [ ] Testcontainers integration tests across all 4 services
 
-### Phase 3 — CI/CD Maturity (after Phase 2)
+### Phase 3 — CI/CD maturity (moved up from Phase 7)
 - [ ] Post-deploy smoke test (curl /actuator/health, fail pipeline if not 200)
-- [ ] Automatic rollback on smoke-test failure (kubectl rollout undo on failure)
+- [ ] Automatic rollback on smoke-test failure (kubectl rollout undo)
 - [ ] Image security scanning (Trivy, fail on CRITICAL/HIGH CVEs)
 - [ ] Environment separation with manual approval gate (dev → prod via GitHub Environments)
 - [ ] Integration tests in CI (mvn verify with Testcontainers *IT.java)
-- [ ] Matrix strategy for DRY (collapse 8 per-service steps into one matrix loop)
+- [ ] Matrix strategy to collapse per-service steps into one loop
 
-### Phase 4 — DB Performance (paused, resume after CI/CD)
-- [x] Session A partial: composite index idx_trades_advisor_timestamp created
-- [ ] Session A finish: re-test with SET max_parallel_workers_per_gather=0
-- [ ] Sessions B + C dropped from sprint scope
+### Phase 4 — Observability
+- Prometheus + Grafana (metrics, dashboards, alerts)
+- Loki + Fluent Bit (log aggregation)
+- OpenTelemetry (distributed tracing across the 4-service chain)
+- Splunk trial (evaluate vs Loki for log search)
 
-### Dropped from sprint scope
-- Phase 4 Sessions B (N+1 with JOIN FETCH) and C (HikariCP pool exhaustion)
-- Phase 8 (AI/LLM via Bedrock)
+### Phase 5 — DB performance
+- Session A: composite index idx_trades_advisor_timestamp (partial — finish with SET max_parallel_workers_per_gather=0)
+- Session B: N+1 query elimination with JOIN FETCH
+- Session C: HikariCP pool exhaustion under load
+- Session D (optional): query plan caching / prepared-statement tuning
+
+### Phase 6 — Production resilience
+- Resilience4j (circuit breaker, retry, timeout, bulkhead)
+- DLQ patterns (already shipped in Phase 2 — extend with reprocessing tooling)
+- Chaos testing (pod kill, network partition, broker failover)
+
+### Phase 7 — Security hardening
+- IRSA (IAM Roles for Service Accounts — replace static AWS creds)
+- ESO (External Secrets Operator — sync from AWS Secrets Manager to K8s)
+- Spring Security (REST endpoint auth on trade-ingestion NLB)
+- Kubernetes NetworkPolicies (default-deny, per-service ingress rules)
+
+### Phase 8 — AI/LLM capstone
+- AWS Bedrock + RAG via pgvector (alert triage / case-summary generation)
 
 ---
 
