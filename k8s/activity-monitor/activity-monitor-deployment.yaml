@@ -12,6 +12,7 @@ spec:
       labels:
         app: activity-monitor-service
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: activity-monitor-service
           image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/activity-monitor-service:latest
@@ -19,6 +20,8 @@ spec:
           ports:
             - containerPort: 8082
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
@@ -51,8 +54,27 @@ spec:
               value: "SSL"
           resources:
             requests:
-              memory: "512Mi"
+              memory: "768Mi"
               cpu: "250m"
             limits:
-              memory: "1Gi"
-              cpu: "500m"
+              memory: "1280Mi"
+              cpu: "750m"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 3
