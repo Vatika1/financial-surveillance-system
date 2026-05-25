@@ -12,6 +12,7 @@ spec:
       labels:
         app: alert-service
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: alert-service
           image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/alert-service:latest
@@ -19,6 +20,8 @@ spec:
           ports:
             - containerPort: 8083
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
@@ -39,10 +42,39 @@ spec:
               value: "SSL"
             - name: SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL
               value: "SSL"
+            - name: SPRING_KAFKA_CONSUMER_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+              value: ""
+            - name: SPRING_KAFKA_CONSUMER_PROPERTIES_SSL_TRUSTSTORE_TYPE
+              value: "PKCS12"
+            - name: SPRING_KAFKA_CONSUMER_PROPERTIES_SSL_ENABLED_PROTOCOLS
+              value: "TLSv1.2"
+            - name: SPRING_KAFKA_CONSUMER_PROPERTIES_SSL_PROTOCOL
+              value: "TLSv1.2"
+            - name: SPRING_KAFKA_CONSUMER_PROPERTIES_SECURITY_PROTOCOL
+              value: "SSL"
           resources:
             requests:
-              memory: "512Mi"
+              memory: "768Mi"
               cpu: "250m"
             limits:
-              memory: "1Gi"
-              cpu: "500m"
+              memory: "1280Mi"
+              cpu: "750m"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8083
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8083
+            periodSeconds: 5
+            failureThreshold: 3
