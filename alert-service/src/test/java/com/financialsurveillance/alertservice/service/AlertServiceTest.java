@@ -82,24 +82,12 @@ public class AlertServiceTest {
         AlertDTO dto = eventToDto(event);
 
         Alert alert = dtoToEntity(dto);
-        when(alertRepository.existsByAlertId(event.getAlertId())).thenReturn(false);
         when(alertMapper.toEntity(any())).thenReturn(alert);
 
         alertService.processAlert(event);
 
         verify(alertRepository).save(alert);
         verify(alertPersistedEventProducer).publishAlert(any(), eq(event));
-    }
-
-    @Test
-    void processAlert_ShouldFail_whenDuplicateAlert(){
-        AlertCreatedEvent event = getAlertCreatedEvent();
-        when(alertRepository.existsByAlertId(event.getAlertId())).thenReturn(true);
-
-        alertService.processAlert(event);
-
-        verify(alertRepository, never()).save(any());
-        verify(alertPersistedEventProducer, never()).publishAlert(any(), any());
     }
 
 }

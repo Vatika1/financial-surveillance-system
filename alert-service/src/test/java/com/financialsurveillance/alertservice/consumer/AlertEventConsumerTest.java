@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.support.Acknowledgment;
 
 import java.util.UUID;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.*;
 public class AlertEventConsumerTest {
 
     @Mock
-    private AlertService alertService;
+    private AlertProcessor alertProcessor;
 
     @InjectMocks
     private AlertEventConsumer alertEventConsumer;
@@ -41,31 +42,34 @@ public class AlertEventConsumerTest {
         Acknowledgment ack = mock(Acknowledgment.class);
 
         alertEventConsumer.consume(event, ack);
-        verify(alertService).processAlert(event);
+        verify(alertProcessor).processInTransaction(event);
         verify(ack).acknowledge();
     }
 
     @Test
-    void ConsumeAlert_ShouldFail_whenNullTradeId(){
+    void ConsumeAlert_ShouldFail_whenNullAlertId(){
         AlertCreatedEvent event = getAlertCreatedEvent();
-        event.setTradeId(null);
+        Acknowledgment ack = mock(Acknowledgment.class);
+        event.setAlertId(null);
 
-        assertThrows(AlertProcessingException.class, () -> {
-            alertEventConsumer.consume(event, mock(Acknowledgment.class));
+        assertThrows(IllegalArgumentException.class, () -> {
+            alertEventConsumer.consume(event, ack);
         });
+
+        verify(alertProcessor, never()).processInTransaction(event);
+        verify(ack, never()).acknowledge();
     }
 
     @Test
-    void ConsumeAlert_ShouldFail_AlertProcessingExceptionWhenServiceFailure(){
+    void ConsumeTrade_ShouldFail_DataIntegrityViolationExceptionWhenDuplicateAlert(){
         AlertCreatedEvent event = getAlertCreatedEvent();
-        doThrow(new RuntimeException("DB down")).when(alertService).processAlert(any());
-
         Acknowledgment ack = mock(Acknowledgment.class);
 
-        assertThrows(AlertProcessingException.class, () -> {
-            alertEventConsumer.consume(event, ack);
-        });
-        verify(alertService).processAlert(event);
-        verify(mock(Acknowledgment.class), never()).acknowledge();
+        doThrow(new DataIntegrityViolationException("Duplicate alert: " + event.getAlertId()))
+                .when(alertProcessor).processInTransaction(any());
+
+        alertEventConsumer.consume(event, ack);
+        verify(alertProcessor).processInTransaction(event);
+        verify(ack).acknowledge();
     }
 }
