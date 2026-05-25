@@ -1,10 +1,14 @@
 package com.financialsurveillance.alertservice.producer;
 
 import com.financialsurveillance.alertservice.dto.AlertDTO;
+import com.financialsurveillance.alertservice.exception.AlertPersistedPublishException;
 import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertPersistedEvent;
 import com.financialsurveillance.events.AlertSeverity;
 import com.financialsurveillance.events.AlertStatus;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -66,16 +71,22 @@ public class AlertPersistedEventProducerTest {
         AlertCreatedEvent event = getAlertCreatedEvent();
         AlertDTO dto = getAlertDTO();
 
-        CompletableFuture<SendResult<String, AlertPersistedEvent>> future =
-                CompletableFuture.completedFuture(mock(SendResult.class));
+        RecordMetadata metadata = new RecordMetadata(
+                new TopicPartition("alerts.persisted", 0),  // topic, partition
+                0L, 0, 0L, 0, 0                            // offset + others
+        );
 
+        ProducerRecord<String, AlertPersistedEvent> producerRecord =
+                new ProducerRecord<>("alerts.persisted", event.getAdvisorId(), null);
+
+        SendResult<String, AlertPersistedEvent> sendResult =
+                new SendResult<>(producerRecord, metadata);
         when(kafkaTemplate.send(any(), any(), any()))
-                .thenReturn(future);
+                .thenReturn(CompletableFuture.completedFuture(sendResult));
 
         alertPersistedEventProducer.publishAlert(dto, event);
 
         verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
-
     }
     @Test
     void ShouldLogError_WhenKafkaPublishFails(){
@@ -85,7 +96,11 @@ public class AlertPersistedEventProducerTest {
                 CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
         when(kafkaTemplate.send(any(), any(), any()))
                 .thenReturn(failedFuture);
-        alertPersistedEventProducer.publishAlert(dto,event);
-        verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
+
+        AlertPersistedPublishException ex = assertThrows(
+                AlertPersistedPublishException.class,
+                () -> alertPersistedEventProducer.publishAlert(dto, event)
+        );
+       verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
     }
 }
