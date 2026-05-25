@@ -9,7 +9,6 @@ import com.financialsurveillance.events.AlertCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -20,15 +19,10 @@ public class AlertService {
     private final AlertRepository alertRepository;
     private final AlertPersistedEventProducer alertPersistedEventProducer;
 
-    @Transactional
     public void processAlert(AlertCreatedEvent event){
         log.info("Processing Alert alertId={} alertTypeId={} tradeId={} advisorId={}",
                 event.getAlertId(), event.getAlertTypeId(), event.getTradeId(), event.getAdvisorId());
-        if(alertRepository.existsByAlertId(event.getAlertId())){
-            log.warn("Duplicate alert alertId={} alertTypeId={} tradeId={} advisorId={}", event.getAlertId(),
-                    event.getAlertTypeId(), event.getTradeId(), event.getAdvisorId());
-            return;
-        }
+
         AlertDTO dto = AlertDTO.builder()
                 .severity(event.getSeverity())
                 .alertTypeId(event.getAlertTypeId())
