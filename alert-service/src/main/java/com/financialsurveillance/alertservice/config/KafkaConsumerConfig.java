@@ -1,12 +1,10 @@
 package com.financialsurveillance.alertservice.config;
 
 import com.financialsurveillance.events.AlertCreatedEvent;
-import com.financialsurveillance.events.AlertPersistedEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +15,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,9 +27,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaConsumerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
-
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -37,11 +34,12 @@ public class KafkaConsumerConfig {
     public ConsumerFactory<String, AlertCreatedEvent> alertConsumerFactory(){
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
 
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "alert-service");
 
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, org.springframework.kafka.support.serializer.JsonDeserializer.class);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
+        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -91,8 +89,9 @@ public class KafkaConsumerConfig {
                         )
                 );
 
-        // 2️⃣ Retry config → 3 retries, 2 sec delay
-        FixedBackOff backOff = new FixedBackOff(2000L, 3);
+        ExponentialBackOff backOff = new ExponentialBackOff(1000L, 2.0);
+        backOff.setMaxInterval(10000L);
+        backOff.setMaxAttempts(3);
 
         // 3️⃣ Main error handler
         DefaultErrorHandler errorHandler =
@@ -100,7 +99,9 @@ public class KafkaConsumerConfig {
 
         // 4️⃣ Optional: mark some exceptions as non-retryable
         errorHandler.addNotRetryableExceptions(
-                IllegalArgumentException.class
+                IllegalArgumentException.class,
+                DeserializationException.class,
+                ClassCastException.class
         );
 
         return errorHandler;

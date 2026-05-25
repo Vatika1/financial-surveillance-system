@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -101,6 +102,9 @@ public class AlertPersistedEventProducerTest {
                 AlertPersistedPublishException.class,
                 () -> alertPersistedEventProducer.publishAlert(dto, event)
         );
+
+        // optional: assert the message or cause to confirm we hit the right catch block
+        assertThat(ex.getMessage()).contains("Kafka publish failed");
        verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
     }
 }
