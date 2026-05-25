@@ -1,6 +1,7 @@
 package com.financialsurveillance.activitymonitor.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
@@ -11,7 +12,8 @@ public class KafkaTopicConfig {
     public NewTopic alertsCreatedTopic() {
         return TopicBuilder.name("alerts.created")
                 .partitions(3)
-                .replicas(1)
+                .replicas(2)
+                .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, "2")
                 .build();
     }
 }
