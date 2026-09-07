@@ -2,9 +2,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: activity-monitor-service
+  labels:
+    app: activity-monitor-service
 spec:
   selector:
     app: activity-monitor-service
   ports:
-    - port: 8082
+    - name: http
+      port: 8082
       targetPort: 8082
