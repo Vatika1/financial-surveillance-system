@@ -2,10 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: trade-ingestion-service
+  labels:
+    app: trade-ingestion-service
 spec:
   type: LoadBalancer
   selector:
     app: trade-ingestion-service
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 8081
