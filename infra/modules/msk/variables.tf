@@ -32,7 +32,7 @@ variable "instance_type" {
 variable "kafka_version" {
   description = "Apache Kafka version"
   type        = string
-  default     = "3.5.1"
+  default     = "3.9.x"
 }
 
 variable "ebs_volume_size" {
