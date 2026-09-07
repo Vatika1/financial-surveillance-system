@@ -8,6 +8,16 @@ output "private_subnet_ids" {
   value       = module.vpc.private_subnet_ids
 }
 
+output "public_subnet_ids" {
+  description = "Public subnet IDs"
+  value       = module.vpc.public_subnet_ids
+}
+
+output "private_route_table_id" {
+  description = "Private route table ID (route to NAT added by ephemeral stack)"
+  value       = module.vpc.private_route_table_id
+}
+
 output "rds_security_group_id" {
   description = "RDS security group ID"
   value       = module.rds.security_group_id
