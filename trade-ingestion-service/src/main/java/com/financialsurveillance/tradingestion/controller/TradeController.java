@@ -3,6 +3,8 @@ package com.financialsurveillance.tradingestion.controller;
 import com.financialsurveillance.tradingestion.dto.TradeRequest;
 import com.financialsurveillance.tradingestion.dto.TradeResponse;
 import com.financialsurveillance.tradingestion.service.TradeIngestionService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class TradeController {
 
     private final TradeIngestionService tradeService;
+    private final Counter tradesIngested;
 
-    public TradeController(TradeIngestionService tradeService) {
+    public TradeController(TradeIngestionService tradeService, MeterRegistry registry) {
         this.tradeService = tradeService;
+        this.tradesIngested = Counter.builder("trades_ingested_total")
+                .description("Trades accepted by trade-ingestion")
+                .register(registry);
     }
 
     @PostMapping
-    public ResponseEntity<TradeResponse> submitTrade(@Valid @RequestBody TradeRequest request){
+    public ResponseEntity<TradeResponse> submitTrade(@Valid @RequestBody TradeRequest request) {
         TradeResponse tradeResponse = tradeService.processTrade(request);
+        tradesIngested.increment();
         return ResponseEntity.status(HttpStatus.CREATED).body(tradeResponse);
     }
+
 }
