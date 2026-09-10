@@ -1,6 +1,7 @@
 package com.financialsurveillance.alertservice.config;
 
 import com.financialsurveillance.events.AlertCreatedEvent;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
@@ -12,6 +13,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.MicrometerConsumerListener;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -29,6 +31,7 @@ public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final MeterRegistry meterRegistry;
 
     @Bean
     public ConsumerFactory<String, AlertCreatedEvent> alertConsumerFactory(){
@@ -47,7 +50,10 @@ public class KafkaConsumerConfig {
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, AlertCreatedEvent.class.getName());
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
-        return new DefaultKafkaConsumerFactory<>(props);
+        DefaultKafkaConsumerFactory<String, AlertCreatedEvent> factory =
+                new DefaultKafkaConsumerFactory<>(props);
+        factory.addListener(new MicrometerConsumerListener<>(meterRegistry));
+        return factory;
     }
 
     @Bean

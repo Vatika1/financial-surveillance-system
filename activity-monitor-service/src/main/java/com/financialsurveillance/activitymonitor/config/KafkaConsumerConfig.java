@@ -2,6 +2,7 @@ package com.financialsurveillance.activitymonitor.config;
 
 import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.TradeCreatedEvent;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
@@ -20,6 +21,7 @@ import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.ExponentialBackOff;
+import org.springframework.kafka.core.MicrometerConsumerListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +32,7 @@ public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, AlertCreatedEvent> kafkaTemplate;
+    private final MeterRegistry meterRegistry;
 
     @Bean
     public ConsumerFactory<String, TradeCreatedEvent> tradeConsumerFactory(){
@@ -48,7 +51,10 @@ public class KafkaConsumerConfig {
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TradeCreatedEvent.class.getName());
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
-        return new DefaultKafkaConsumerFactory<>(props);
+        DefaultKafkaConsumerFactory<String, TradeCreatedEvent> factory =
+                new DefaultKafkaConsumerFactory<>(props);
+        factory.addListener(new MicrometerConsumerListener<>(meterRegistry));
+        return factory;
     }
 
     @Bean
