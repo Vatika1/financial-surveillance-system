@@ -75,6 +75,14 @@ kubectl create secret generic msk-secret `
 
 if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create msk-secret" -ForegroundColor Red; exit 1 }
 
+# ===== STEP 4c: Install monitoring stack =====
+Write-Host "`n[4c/5] Installing kube-prometheus-stack..." -ForegroundColor Cyan
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>$null
+helm repo update
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack `
+    --namespace monitoring --create-namespace --wait --timeout 10m
+if ($LASTEXITCODE -ne 0) { Write-Host "Helm install failed" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
 $sha = git -C $repoRoot rev-parse --short HEAD
