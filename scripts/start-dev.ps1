@@ -83,6 +83,11 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack `
     --namespace monitoring --create-namespace --wait --timeout 10m
 if ($LASTEXITCODE -ne 0) { Write-Host "Helm install failed" -ForegroundColor Red; exit 1 }
 
+kubectl create configmap trade-surveillance-dashboard `
+    --from-file=(Join-Path $k8sPath "monitoring\trade-surveillance-dashboard.json") `
+    --namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+kubectl label configmap trade-surveillance-dashboard grafana_dashboard=1 --namespace monitoring --overwrite
+
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
 $sha = git -C $repoRoot rev-parse --short HEAD
