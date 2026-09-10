@@ -77,10 +77,13 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create msk-secret" -ForegroundC
 
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
-kubectl apply -f (Join-Path $k8sPath "trade-ingestion")
-kubectl apply -f (Join-Path $k8sPath "activity-monitor")
-kubectl apply -f (Join-Path $k8sPath "alert-service")
-kubectl apply -f (Join-Path $k8sPath "case-management")
+$sha = git -C $repoRoot rev-parse --short HEAD
+Write-Host "  Deploying image tag: $sha" -ForegroundColor DarkGray
+foreach ($svc in "trade-ingestion","activity-monitor","alert-service","case-management") {
+    Get-ChildItem (Join-Path $k8sPath $svc) -Filter *.yaml | ForEach-Object {
+        (Get-Content $_.FullName -Raw) -replace 'IMAGE_TAG', $sha | kubectl apply -f -
+    }
+}
 
 # Wait for pods to become ready (polling)
 Write-Host "`nWaiting for pods to become ready..." -ForegroundColor Cyan

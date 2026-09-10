@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: case-management-service
-          image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/case-management-service:latest
+          image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/case-management-service:IMAGE_TAG
           imagePullPolicy: Always
           ports:
             - containerPort: 8084
