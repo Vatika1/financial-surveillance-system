@@ -79,7 +79,7 @@ Run from the repo root. RDS and ECR are persistent and survive `stop-dev`; every
 sum by (service) (rate(http_server_requests_seconds_count[1m]))                                  # request rate
 sum by (service) (rate(http_server_requests_seconds_count{status=~"5.."}[1m]))                   # 5xx rate
 histogram_quantile(0.95, sum by (service, le) (rate(http_server_requests_seconds_bucket[5m])))   # p95
-sum by (consumergroup, topic) (kafka_consumer_fetch_manager_records_lag)                          # consumer lag (name unverified)
+sum by (consumergroup, topic) (kafka_consumer_fetch_manager_records_lag)                          # consumer lag (verified 22dd98c)
 sum by (service) (jvm_memory_used_bytes{area="heap"})                                             # heap
 hikaricp_connections_active                                                                       # DB pool
 sum(rate(trades_ingested_total[1m]))                                                              # custom counter
@@ -89,16 +89,34 @@ sum(rate(trades_ingested_total[1m]))                                            
 
 ## 6. Generate load
 
+All thirteen fields are required. `$run` makes tradeIds unique per run — RDS persists, duplicates return 409. Every line should print `-> 201`.
+
 ```powershell
 $nlb = kubectl get svc trade-ingestion-service -o jsonpath="{.status.loadBalancer.ingress[0].hostname}"
 $ts  = (Get-Date).ToUniversalTime().AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ssZ")
+$run = Get-Date -Format "HHmm"
 0..19 | ForEach-Object {
-    $body = @{ tradeId = "TRD-LOAD-{0:D3}" -f $_; tradeTimestamp = $ts; <# other required fields #> } | ConvertTo-Json
-    Invoke-WebRequest "http://$nlb/api/trades" -Method POST -Body $body -ContentType "application/json" -UseBasicParsing | Out-Null
+    $body = @{
+        tradeId        = "TRD-L-$run-{0:D2}" -f $_
+        advisorId      = "ADV-001"
+        accountId      = "ACC-001"
+        clientId       = "CLI-001"
+        symbol         = "AAPL"
+        tradeType      = "BUY"
+        quantity       = 100
+        price          = 150.00
+        currency       = "USD"
+        exchange       = "NYSE"
+        tradeTimestamp = $ts
+        sourceSystem   = "ETRADE"
+        sourceSystemId = "SRC-001"
+    } | ConvertTo-Json
+    $r = Invoke-WebRequest "http://$nlb/api/trades" -Method POST -Body $body -ContentType "application/json" -UseBasicParsing
+    Write-Host "$_ -> $($r.StatusCode)"
 }
 ```
 
-`tradeTimestamp` must not be older than 3 days or the trade is rejected. Sequential loop over internet RTT ≈ 0.6 req/s — it measures the loop, not capacity. Real load testing is k6 (Phase 5).
+Validation that bites: `tradeTimestamp` within the last 3 days and not in the future; `symbol` in the approved list (AAPL, MSFT, JPM, GS, TSLA, AMZN, GOOGL, META, BAC, WFC); overlong tradeIds rejected. Sequential loop over internet RTT ≈ 0.6 req/s — it measures the loop, not capacity. Real load testing is k6 (Phase 5).
 
 ---
 
@@ -106,8 +124,8 @@ $ts  = (Get-Date).ToUniversalTime().AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ss
 
 | Command | When |
 |---|---|
-| `kubectl scale deployment/activity-monitor-service --replicas=0` | Stop a consumer. Watch Kafka consumer lag climb on the dashboard. |
-| `kubectl scale deployment/activity-monitor-service --replicas=1` | Restore. Watch lag drain. |
+| `kubectl scale deployment/activity-monitor-service --replicas=0` | Stop a consumer. Its `trades_raw` line **disappears** — the lag metric is published by the consumer pod itself, so no pod means no number, not a climbing one. Messages pile up unseen. |
+| `kubectl scale deployment/activity-monitor-service --replicas=1` | Restore. New pod reports the inherited backlog on first scrape, then drains. 20 trades drain faster than the 30s scrape interval, so you usually see zero straight away; send a few hundred to catch the spike. |
 | `kubectl rollout restart deployment/<service>` | Restart pods without changing the image. |
 | `kubectl rollout undo deployment/<service>` | Roll back to the previous revision. **First command in an incident — roll back, then diagnose.** |
 | `kubectl rollout status deployment/<service> --timeout=5m` | Block until a rollout finishes. CI uses this. |
