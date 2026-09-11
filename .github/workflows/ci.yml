@@ -87,11 +87,24 @@ jobs:
         id: image-tag
         run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
+      # ECR tags are immutable. On a manual re-run of an already-built commit,
+      # skip the build and go straight to deploy.
+      - name: Check which images already exist in ECR
+        id: ecr-check
+        run: |
+          for svc in trade-ingestion-service activity-monitor-service alert-service case-management-service; do
+            if docker manifest inspect "$ECR_REGISTRY/surveillance-prod/$svc:$IMAGE_TAG" > /dev/null 2>&1; then
+              echo "$svc=true" >> $GITHUB_OUTPUT
+            else
+              echo "$svc=false" >> $GITHUB_OUTPUT
+            fi
+          done
+
       # -----------------------------
       # Build & push images to ECR
       # -----------------------------
       - name: Build & push trade-ingestion-service
-        if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'trade-ingestion-service' }}
+        if: ${{ (github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'trade-ingestion-service') && steps.ecr-check.outputs.trade-ingestion-service != 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -101,7 +114,7 @@ jobs:
             ${{ env.ECR_REGISTRY }}/surveillance-prod/trade-ingestion-service:${{ env.IMAGE_TAG }}
 
       - name: Build & push activity-monitor-service
-        if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'activity-monitor-service' }}
+        if: ${{ (github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'activity-monitor-service') && steps.ecr-check.outputs.activity-monitor-service != 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -111,7 +124,7 @@ jobs:
             ${{ env.ECR_REGISTRY }}/surveillance-prod/activity-monitor-service:${{ env.IMAGE_TAG }}
 
       - name: Build & push alert-service
-        if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'alert-service' }}
+        if: ${{ (github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'alert-service') && steps.ecr-check.outputs.alert-service != 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -121,7 +134,7 @@ jobs:
             ${{ env.ECR_REGISTRY }}/surveillance-prod/alert-service:${{ env.IMAGE_TAG }}
 
       - name: Build & push case-management-service
-        if: ${{ github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'case-management-service' }}
+        if: ${{ (github.event_name == 'push' || inputs.service == 'all' || inputs.service == 'case-management-service') && steps.ecr-check.outputs.case-management-service != 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: .
