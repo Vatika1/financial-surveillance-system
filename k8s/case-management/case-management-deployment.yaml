@@ -12,6 +12,7 @@ spec:
       labels:
         app: case-management-service
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: case-management-service
           image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/case-management-service:IMAGE_TAG
@@ -21,6 +22,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://surveillance-prod-db.ccfkou6gmo5z.us-east-1.rds.amazonaws.com:5432/surveillance?currentSchema=case_management"
             - name: SPRING_DATASOURCE_USERNAME
@@ -46,3 +49,21 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8084
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8084
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8084
+            periodSeconds: 10
+            failureThreshold: 3
