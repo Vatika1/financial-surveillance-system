@@ -17,7 +17,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -57,6 +57,7 @@ management:
 
 logging:
   level:
+    root: WARN
     com.financialsurveillance: DEBUG
     org.springframework.kafka: INFO
     org.flywaydb: INFO

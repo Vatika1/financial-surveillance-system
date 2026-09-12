@@ -1,5 +1,7 @@
 package com.financialsurveillance.casemanagement.config;
 
+import java.util.Map;
+
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,16 +20,21 @@ public class KafkaTopicConfig {
     @Value("${kafka.topics.alerts-persisted}")
     private String alertsPersistedTopic;
 
+    // Prod (MSK, 2 brokers) sets these to 2; local and test fall back to 1 for a single broker.
+    @Value("${kafka.topics.replication-factor:1}")
+    private short replicationFactor;
+
+    @Value("${kafka.topics.min-insync-replicas:1}")
+    private String minInsyncReplicas;
+
     @Bean
     public NewTopic casesCreatedTopic() {
-        return new NewTopic(casesCreatedTopic, 3, (short) 2)
-                .configs(java.util.Map.of(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, "2"));
+        return topic(casesCreatedTopic);
     }
 
     @Bean
     public NewTopic casesClosedTopic() {
-        return new NewTopic(casesClosedTopic, 3, (short) 2)
-                .configs(java.util.Map.of(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, "2"));
+        return topic(casesClosedTopic);
     }
 
     // Dead letter topic for the topic this service consumes.
@@ -35,7 +42,11 @@ public class KafkaTopicConfig {
     // NewTopic beans only create; they never alter an existing topic.
     @Bean
     public NewTopic alertsPersistedDltTopic() {
-        return new NewTopic(alertsPersistedTopic + ".DLT", 3, (short) 2)
-                .configs(java.util.Map.of(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, "2"));
+        return topic(alertsPersistedTopic + ".DLT");
+    }
+
+    private NewTopic topic(String name) {
+        return new NewTopic(name, 3, replicationFactor)
+                .configs(Map.of(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas));
     }
 }

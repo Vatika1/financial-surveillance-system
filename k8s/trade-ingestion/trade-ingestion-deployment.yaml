@@ -38,6 +38,8 @@ spec:
                 secretKeyRef:
                   name: msk-secret
                   key: brokers
+            - name: SPRING_KAFKA_SECURITY_PROTOCOL
+              value: "SSL"
           resources:
             requests:
               memory: "768Mi"

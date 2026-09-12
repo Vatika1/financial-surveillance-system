@@ -3,6 +3,7 @@ package com.financialsurveillance.tradingestion.config;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
@@ -20,16 +21,22 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     private static final int PARTITIONS = 3;
-    private static final short REPLICAS = 2;
 
     private final KafkaTopicsProperties topics;
+
+    // Prod (MSK, 2 brokers) sets these to 2; local and test fall back to 1 for a single broker.
+    @Value("${kafka.topics.replication-factor:1}")
+    private int replicationFactor;
+
+    @Value("${kafka.topics.min-insync-replicas:1}")
+    private String minInsyncReplicas;
 
     @Bean
     public NewTopic tradesRawTopic() {
         return TopicBuilder.name(topics.tradesRaw())
                 .partitions(PARTITIONS)
-                .replicas(REPLICAS)
-                .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, "2")
+                .replicas(replicationFactor)
+                .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
     }
 
@@ -41,8 +48,8 @@ public class KafkaTopicConfig {
         // trades.raw.* topics are owned in one place.
         return TopicBuilder.name(topics.tradesRawDlt())
                 .partitions(PARTITIONS)
-                .replicas(REPLICAS)
-                .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, "2")
+                .replicas(replicationFactor)
+                .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
     }
 }
