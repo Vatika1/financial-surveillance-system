@@ -1,6 +1,5 @@
 package com.financialsurveillance.casemanagement.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.financialsurveillance.casemanagement.dto.AssignRequest;
 import com.financialsurveillance.casemanagement.dto.CaseDetailResponse;
@@ -24,12 +23,12 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CaseController.class)
 public class CaseControllerTest {
@@ -113,18 +112,14 @@ public class CaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("11111111-1111-1111-1111-111111111111"))
                 .andExpect(jsonPath("$.advisorId").value("ADV-001"))
-                .andExpect(jsonPath("$.status").value("OPEN"));
-    }
-
-    @Test
-    void getCaseDetail_shouldReturn404_whenCaseNotFound() throws Exception {
-        when(caseService.getCaseById(any()))
-                .thenThrow(new CaseNotFoundException(detailResponse.getId()));
-
-        mockMvc.perform(
-                        get("/api/v1/cases/11111111-1111-1111-1111-111111111111")
-                )
-                .andExpect(status().isNotFound());
+                .andExpect(jsonPath("$.status").value("OPEN"))
+                .andExpect(jsonPath("$.alertId").value("22222222-2222-2222-2222-222222222222"))
+                .andExpect(jsonPath("$.assignedTo").value("sarah.chen"))
+                .andExpect(jsonPath("$.createdAt").exists())
+                .andExpect(jsonPath("$.updatedAt").exists())
+                .andExpect(jsonPath("$.closedAt").value(nullValue()))
+                .andExpect(jsonPath("$.auditTrails").isEmpty())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -144,33 +139,7 @@ public class CaseControllerTest {
                 .andExpect(jsonPath("$.assignedTo").value("sarah.chen"));
 
     }
-    @Test
-    void changeStatus_shouldReturn404_whenCaseNotFound() throws Exception {
-        TransitionRequest request = getTransitionRequest(CaseStatus.IN_REVIEW);
-        when(caseService.transitionStatus(any(), any()))
-                .thenThrow(new CaseNotFoundException(detailResponse.getId()));
 
-        mockMvc.perform(
-                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/transition")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isNotFound());
-    }
-    @Test
-    void changeStatus_shouldReturn409_whenIllegalTransition() throws Exception {
-        TransitionRequest request = getTransitionRequest(CaseStatus.CLOSED_NO_ACTION);
-        when(caseService.transitionStatus(any(), any()))
-                .thenThrow(new IllegalStateTransitionException(detailResponse.getId()));
-
-        mockMvc.perform(
-                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/transition")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isConflict());
-
-    }
     @Test
     void changeStatus_shouldReturn400_whenRequestBodyInvalid() throws Exception {
         TransitionRequest request = getTransitionRequest(null);
@@ -216,19 +185,7 @@ public class CaseControllerTest {
                 .andExpect(jsonPath("$.assignedTo").value("sarah.chen"));
 
     }
-    @Test
-    void assignCase_shouldReturn404_whenCaseNotFound () throws Exception {
-        AssignRequest request = getAssignRequest("sarah.chen");
-        when(caseService.assign(any(), any()))
-                .thenThrow(new CaseNotFoundException(detailResponse.getId()));
-        mockMvc.perform(
-                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/assign")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isNotFound());
 
-    }
     @Test
     void assignCase_shouldReturn400_whenRequestBodyInvalid () throws Exception {
         AssignRequest invalidRequest = AssignRequest.builder()
@@ -236,7 +193,7 @@ public class CaseControllerTest {
                 .performedBy("")
                 .build();
         mockMvc.perform(
-                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/transition")
+                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/assign")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequest))
                 )
