@@ -13,21 +13,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest
 @Testcontainers
-class CaseManagementServiceApplicationTests {
-
-	@Container
-	@ServiceConnection
-	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-
-	@Container
-	static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
-			DockerImageName.parse("confluentinc/cp-kafka:7.5.0")
-	);
-
-	@DynamicPropertySource
-	static void overrideProperties(DynamicPropertyRegistry registry) {
-		registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-	}
+class CaseManagementServiceApplicationTests extends AbstractIntegrationTest {
 
 	@Test
 	void contextLoads() {
