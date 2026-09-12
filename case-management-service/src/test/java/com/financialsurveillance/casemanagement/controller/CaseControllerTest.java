@@ -133,41 +133,6 @@ public class CaseControllerTest {
     }
 
     @Test
-    void getCaseDetail_shouldReturn400_whenIdNotUuid() throws Exception{
-        mockMvc.perform(
-                        get("/api/v1/cases/not-a-uuid")
-
-                )
-                .andExpect(status().isBadRequest());
-
-        verify(caseService, never()).getCaseById(any());
-    }
-
-    @Test
-    void assignCase_shouldReturn400_whenJsonMalformed() throws Exception{
-        mockMvc.perform(
-                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/assign")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{ \"assignedTo\": ")
-                )
-                .andExpect(status().isBadRequest());
-
-        verify(caseService, never()).assign(any(), any());
-
-    }
-
-    @Test
-    void getAllCases_shouldReturn400_whenStatusNotValidEnum() throws Exception{
-        mockMvc.perform(
-                        get("/api/v1/cases")
-                                .param("status", "BANANA")
-                )
-                .andExpect(status().isBadRequest());
-
-        verify(caseService, never()).getAllCases(any(), any(), any(), any(Pageable.class));
-    }
-
-    @Test
     void getCaseDetail_shouldReturnCaseDetailResponse() throws Exception {
         when(caseService.getCaseById(any()))
                 .thenReturn(detailResponse);

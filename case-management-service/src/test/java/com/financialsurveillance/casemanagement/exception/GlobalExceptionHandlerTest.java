@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,7 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -118,5 +119,41 @@ public class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.timestamp").exists());
 
     }
+
+    @Test
+    void getCaseDetail_shouldReturn400_whenIdNotUuid() throws Exception{
+        mockMvc.perform(
+                        get("/api/v1/cases/not-a-uuid")
+
+                )
+                .andExpect(status().isBadRequest());
+
+        verify(caseService, never()).getCaseById(any());
+    }
+
+    @Test
+    void assignCase_shouldReturn400_whenJsonMalformed() throws Exception{
+        mockMvc.perform(
+                        post("/api/v1/cases/11111111-1111-1111-1111-111111111111/assign")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{ \"assignedTo\": ")
+                )
+                .andExpect(status().isBadRequest());
+
+        verify(caseService, never()).assign(any(), any());
+
+    }
+
+    @Test
+    void getAllCases_shouldReturn400_whenStatusNotValidEnum() throws Exception{
+        mockMvc.perform(
+                        get("/api/v1/cases")
+                                .param("status", "BANANA")
+                )
+                .andExpect(status().isBadRequest());
+
+        verify(caseService, never()).getAllCases(any(), any(), any(), any(Pageable.class));
+    }
+
 
 }
