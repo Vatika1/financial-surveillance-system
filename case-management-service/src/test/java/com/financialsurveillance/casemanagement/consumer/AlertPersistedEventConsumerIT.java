@@ -7,9 +7,13 @@ import com.financialsurveillance.events.AlertPersistedEvent;
 import com.financialsurveillance.events.AlertSeverity;
 import com.financialsurveillance.events.AlertStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -20,6 +24,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@ExtendWith(OutputCaptureExtension.class)
 public class AlertPersistedEventConsumerIT extends AbstractIntegrationTest {
 
     @Autowired
@@ -67,10 +72,9 @@ public class AlertPersistedEventConsumerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldSkipCase_whenDuplicateAlertConsumed() throws ExecutionException, InterruptedException {
+    void shouldSkipCase_whenDuplicateAlertConsumed(CapturedOutput output) throws ExecutionException, InterruptedException {
         UUID alertId = UUID.randomUUID();
         AlertPersistedEvent alertPersistedEvent1 = alertEvent(alertId);
-        AlertPersistedEvent alertPersistedEvent2 = alertEvent(alertId);
 
         kafkaTemplate.send(alertsTopic, alertPersistedEvent1.getAlertId().toString(), alertPersistedEvent1).get();
 
@@ -80,13 +84,16 @@ public class AlertPersistedEventConsumerIT extends AbstractIntegrationTest {
                         assertEquals(1, caseRepository.countByAlertId(alertId))
                 );
 
-        kafkaTemplate.send(alertsTopic, alertPersistedEvent2.getAlertId().toString(), alertPersistedEvent2).get();
+        kafkaTemplate.send(alertsTopic, alertPersistedEvent1.getAlertId().toString(), alertPersistedEvent1).get();
 
         await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() ->
-                        assertEquals(1, caseRepository.countByAlertId(alertId))
+                        assertTrue(output.getOut().contains("Duplicate alert detected"))
                 );
+
+        assertEquals(1, caseRepository.countByAlertId(alertId));
+        assertEquals(1, StringUtils.countOccurrencesOf(output.getOut(), "Creating case for Alert"));
     }
 
     @Test
