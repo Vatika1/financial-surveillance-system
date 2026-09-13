@@ -2,9 +2,7 @@ package com.financialsurveillance.casemanagement.consumer;
 
 import com.financialsurveillance.casemanagement.service.CaseService;
 import com.financialsurveillance.casemanagement.service.IdempotencyService;
-import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertPersistedEvent;
-import com.financialsurveillance.events.CaseCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

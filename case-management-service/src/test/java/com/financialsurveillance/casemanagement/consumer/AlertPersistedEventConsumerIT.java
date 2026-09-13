@@ -125,6 +125,4 @@ public class AlertPersistedEventConsumerIT extends AbstractIntegrationTest {
         consumer.close();
     }
 
-    @Test
-    void shouldRollbackCase_whenEventPublishFails(){}
 }
