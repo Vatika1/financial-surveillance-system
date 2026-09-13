@@ -1,0 +1,15 @@
+{
+  "alertId": "11111111-1111-1111-1111-111111111111",
+  "alertTypeId": "WASH_TRADE",
+  "tradeId": "TRD-1001",
+  "advisorId": "ADV-42",
+  "ruleId": "RULE-WT-01",
+  "ruleName": "Wash Trade Detection",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "persistedAt": "2026-01-01T00:00:01Z",
+  "violationDetails": {
+    "matchedTrades": 2
+  },
+  "severity": "HIGH",
+  "status": "OPEN"
+}
