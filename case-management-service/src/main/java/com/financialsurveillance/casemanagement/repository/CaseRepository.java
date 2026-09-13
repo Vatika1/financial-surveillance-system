@@ -27,4 +27,6 @@ public interface CaseRepository extends JpaRepository<Case, UUID> {
                              Pageable pageable);
 
     boolean existsByAlertId(UUID alertId);
+
+    long countByAlertId(UUID alertId);
 }

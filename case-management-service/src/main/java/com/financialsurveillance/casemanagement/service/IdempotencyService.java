@@ -2,6 +2,7 @@ package com.financialsurveillance.casemanagement.service;
 
 import com.financialsurveillance.casemanagement.domain.ProcessedAlert;
 import com.financialsurveillance.casemanagement.repository.ProcessedAlertRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class IdempotencyService {
         ProcessedAlert processedAlert = ProcessedAlert.builder()
                 .alertId(alertId)
                 .build();
-        processedAlertRepository.save(processedAlert);
+        processedAlertRepository.saveAndFlush(processedAlert);
         log.debug("Marked processed: alertId={}", alertId);
     }
 }

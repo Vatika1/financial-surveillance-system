@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Persistable;
 
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProcessedAlert {
+public class ProcessedAlert implements Persistable<UUID> {
 
     @Id
     @Column(name = "alert_id", nullable = false, length = 50)
@@ -30,6 +30,15 @@ public class ProcessedAlert {
         if (processedAt == null) {
             processedAt = ZonedDateTime.now();
         }
+    }
 
+    @Override
+    public UUID getId() {
+        return alertId;
+    }
+
+    @Override
+    public boolean isNew() {
+        return true;
     }
 }
