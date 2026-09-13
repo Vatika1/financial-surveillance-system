@@ -16,10 +16,10 @@ public abstract class AbstractIntegrationTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
+    protected static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
 
     @Container
-    static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
+    protected static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
             DockerImageName.parse("confluentinc/cp-kafka:7.5.0")
     );
 
