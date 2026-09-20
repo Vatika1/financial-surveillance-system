@@ -3,7 +3,9 @@ package com.financialsurveillance.casemanagement.config;
 import com.financialsurveillance.events.AlertPersistedEvent;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +20,7 @@ import org.springframework.kafka.core.MicrometerConsumerListener;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.RetryListener;
 import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
@@ -26,6 +29,7 @@ import org.springframework.util.backoff.ExponentialBackOff;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class KafkaConsumerConfig {
@@ -100,7 +104,26 @@ public class KafkaConsumerConfig {
                 NullPointerException.class,
                 ClassCastException.class
         );
+        errorHandler.setRetryListeners(new RetryListener() {
+            @Override
+            public void failedDelivery(ConsumerRecord<?, ?> record, Exception ex, int deliveryAttempt) {
+                log.warn("Delivery failed attempt={} key={} topic={} partition={} offset={} reason={}",
+                        deliveryAttempt, record.key(), record.topic(), record.partition(), record.offset(), ex.getMessage());
+            }
 
+            @Override
+            public void recovered(ConsumerRecord<?, ?> record, Exception ex) {
+                log.warn("Retries exhausted, sent to DLT key={} topic={} partition={} offset={} reason={}",
+                        record.key(), record.topic(), record.partition(), record.offset(), ex.getMessage());
+            }
+
+            @Override
+            public void recoveryFailed(ConsumerRecord<?, ?> record, Exception original, Exception failure) {
+                // ERROR: DLT publish itself failed
+                log.error("DLT publish failed key={} topic={} partition={} offset={} originalReason={}",
+                        record.key(), record.topic(), record.partition(), record.offset(), original.getMessage(), failure);
+            }
+        });
         return errorHandler;
     }
 }
