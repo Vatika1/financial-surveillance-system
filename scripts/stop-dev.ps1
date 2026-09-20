@@ -12,8 +12,6 @@
 #   aws ec2 describe-nat-gateways --region us-east-1 --query "NatGateways[].State"
 #   aws elbv2 describe-load-balancers --region us-east-1 --query "LoadBalancers[].LoadBalancerName"
 #
-# Note: the sanity check at the bottom of this script only covers Classic ELBs (aws elb).
-# The NLB is v2 (aws elbv2) and is NOT covered by it — run the fourth command above.
 
 $ErrorActionPreference = "Stop"
 
