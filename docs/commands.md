@@ -174,6 +174,19 @@ kubectl wait --for=condition=Ready pod/rds-proxy --timeout=60s
 kubectl port-forward pod/rds-proxy 5432:5432      # then DBeaver → localhost:5432
 kubectl delete pod rds-proxy                      # when done
 ```
+## 12. Teardown verification
+
+Run after `stop-dev.ps1`. Expected output, in order: `[]`, `[]`, `"deleted"`, `[]`.
+
+| Command | What it proves |
+|---|---|
+| `aws eks list-clusters --region us-east-1` | No EKS control plane billing |
+| `aws kafka list-clusters --region us-east-1 --query "ClusterInfoList[].State"` | No MSK brokers |
+| `aws ec2 describe-nat-gateways --region us-east-1 --query "NatGateways[].State"` | NAT gateway gone (shows `deleted` for a while, then disappears) |
+| `aws elbv2 describe-load-balancers --region us-east-1 --query "LoadBalancers[].LoadBalancerName"` | No stranded NLB — Kubernetes creates these outside Terraform, so `terraform destroy` never sees them |
+
+If the cluster is up when you expected it down, list worker nodes with
+`aws ec2 describe-instances --region us-east-1 --query "Reservations[].Instances[].[InstanceId,State.Name]"`.
 
 ---
 

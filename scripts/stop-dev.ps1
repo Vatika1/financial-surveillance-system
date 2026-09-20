@@ -3,6 +3,17 @@
 # Tears down the ephemeral stack (EKS + MSK). Persistent (RDS, ECR, VPC, DB secret) stays running.
 # IMPORTANT: deletes K8s services BEFORE terraform destroy so the LoadBalancer controller
 # cleans up its cloud LB. Skipping this orphans the trade-ingestion LB every cycle.
+# ===== Teardown verification =====
+# Run these after this script finishes. Expected: [], [], "deleted", []
+# If any returns something else, the account is still billing.
+#
+#   aws eks list-clusters --region us-east-1
+#   aws kafka list-clusters --region us-east-1 --query "ClusterInfoList[].State"
+#   aws ec2 describe-nat-gateways --region us-east-1 --query "NatGateways[].State"
+#   aws elbv2 describe-load-balancers --region us-east-1 --query "LoadBalancers[].LoadBalancerName"
+#
+# Note: the sanity check at the bottom of this script only covers Classic ELBs (aws elb).
+# The NLB is v2 (aws elbv2) and is NOT covered by it — run the fourth command above.
 
 $ErrorActionPreference = "Stop"
 
@@ -35,14 +46,17 @@ Set-Location $ephemeralPath
 terraform destroy -auto-approve
 if ($LASTEXITCODE -ne 0) { Write-Host "Destroy failed" -ForegroundColor Red; exit 1 }
 
-# ===== Sanity check: confirm no orphaned Classic LBs remain =====
+# ===== Sanity check: confirm no orphaned load balancers remain (Classic + v2) =====
 Write-Host "`nChecking for leftover load balancers..." -ForegroundColor Cyan
-$leftover = aws elb describe-load-balancers --query "LoadBalancerDescriptions[].LoadBalancerName" --output text 2>$null
+$classic = aws elb describe-load-balancers --query "LoadBalancerDescriptions[].LoadBalancerName" --output text 2>$null
+$v2      = aws elbv2 describe-load-balancers --query "LoadBalancers[].LoadBalancerName" --output text 2>$null
+$leftover = "$classic $v2".Trim()
 if ([string]::IsNullOrWhiteSpace($leftover)) {
-    Write-Host "  No Classic load balancers remaining. Clean." -ForegroundColor Green
+    Write-Host "  No load balancers remaining. Clean." -ForegroundColor Green
 } else {
     Write-Host "  WARNING: load balancer(s) still present: $leftover" -ForegroundColor Red
-    Write-Host "  Delete with: aws elb delete-load-balancer --load-balancer-name <name>" -ForegroundColor Yellow
+    Write-Host "  Classic: aws elb delete-load-balancer --load-balancer-name <name>" -ForegroundColor Yellow
+    Write-Host "  v2:      aws elbv2 delete-load-balancer --load-balancer-arn <arn>" -ForegroundColor Yellow
 }
 
 Write-Host "`n=== STOP-DEV COMPLETE ===" -ForegroundColor Green
