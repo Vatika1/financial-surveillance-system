@@ -20,7 +20,7 @@ export const options = {
     },
 };
 
-const SYMBOLS = ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'NVDA'];
+const SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META'];
 
 export default function () {
     const now = Date.now();
@@ -37,7 +37,7 @@ export default function () {
         price: 150.0,
         currency: 'USD',
         exchange: 'NYSE',
-        tradeTimestamp: new Date(now).toISOString(),
+        tradeTimestamp: new Date(Date.now() - 5000).toISOString(),
         sourceSystem: 'ETRADE',
         sourceSystemId: `SRC-${__ITER}`,
     });
