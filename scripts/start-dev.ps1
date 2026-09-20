@@ -92,11 +92,19 @@ kubectl label configmap trade-surveillance-dashboard grafana_dashboard=1 --names
 
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
-$sha = git -C $repoRoot rev-parse --short HEAD
-Write-Host "  Deploying image tag: $sha" -ForegroundColor DarkGray
 foreach ($svc in "trade-ingestion","activity-monitor","alert-service","case-management") {
+    $repo = if ($svc -like "*-service") { $svc } else { "$svc-service" }
+    $tag = aws ecr describe-images `
+        --repository-name "surveillance-prod/$repo" `
+        --region us-east-1 `
+        --query "sort_by(imageDetails,&imagePushedAt)[-1].imageTags[?@!='latest'] | [0]" `
+        --output text
+    if ([string]::IsNullOrWhiteSpace($tag) -or $tag -eq "None") {
+        Write-Host "No image found in ECR for $repo" -ForegroundColor Red; exit 1
+    }
+    Write-Host "  $svc -> $tag" -ForegroundColor DarkGray
     Get-ChildItem (Join-Path $k8sPath $svc) -Filter *.yaml | ForEach-Object {
-        (Get-Content $_.FullName -Raw) -replace 'IMAGE_TAG', $sha | kubectl apply -f -
+        (Get-Content $_.FullName -Raw) -replace 'IMAGE_TAG', $tag | kubectl apply -f -
     }
 }
 

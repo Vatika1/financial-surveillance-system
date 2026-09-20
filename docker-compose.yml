@@ -87,6 +87,9 @@ services:
   # ─────────────────────────────────────────
   trade-ingestion-service:
     image: trade-ingestion-service:latest
+    build:
+      context: .
+      dockerfile: trade-ingestion-service/Dockerfile
     container_name: surveillance-trade-ingestion
     depends_on:
       postgres:
@@ -101,6 +104,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_TOPICS_REPLICATION_FACTOR: "1"
+      KAFKA_TOPICS_MIN_INSYNC_REPLICAS: "1"
     networks:
       - surveillance-network
 
@@ -109,6 +114,9 @@ services:
   # ─────────────────────────────────────────
   activity-monitor-service:
     image: activity-monitor-service:latest
+    build:
+      context: .
+      dockerfile: activity-monitor-service/Dockerfile
     container_name: surveillance-activity-monitor
     depends_on:
       postgres:
@@ -123,6 +131,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_TOPICS_REPLICATION_FACTOR: "1"
+      KAFKA_TOPICS_MIN_INSYNC_REPLICAS: "1"
     networks:
       - surveillance-network
 
@@ -131,6 +141,9 @@ services:
   # ─────────────────────────────────────────
   alert-service:
     image: alert-service:latest
+    build:
+      context: .
+      dockerfile: alert-service/Dockerfile
     container_name: surveillance-alert-service
     depends_on:
       postgres:
@@ -145,6 +158,35 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_TOPICS_REPLICATION_FACTOR: "1"
+      KAFKA_TOPICS_MIN_INSYNC_REPLICAS: "1"
+    networks:
+      - surveillance-network
+
+  # ─────────────────────────────────────────
+  # case-management-service
+  # ─────────────────────────────────────────
+  case-management-service:
+    image: case-management-service:latest
+    build:
+      context: .
+      dockerfile: case-management-service/Dockerfile
+    container_name: surveillance-case-management
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/surveillance
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_TOPICS_REPLICATION_FACTOR: "1"
+      KAFKA_TOPICS_MIN_INSYNC_REPLICAS: "1"
     networks:
       - surveillance-network
 

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: activity-monitor-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: activity-monitor-service

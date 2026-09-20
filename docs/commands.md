@@ -197,3 +197,34 @@ If the cluster is up when you expected it down, list worker nodes with
 - `--flag=(expression)` breaks: PowerShell splits it into two arguments. Assign to a `$variable` first, then `--flag=$variable`.
 - Backtick at line end = continuation. No trailing space after it.
 - `gh` is not installed — check CI at https://github.com/Vatika1/financial-surveillance-system/actions.
+
+## Local Docker stack
+
+```powershell
+# Compose service names (keys in docker-compose.yml)
+docker compose config --services
+# trade-ingestion-service, activity-monitor-service, alert-service,
+# case-management-service, kafka, zookeeper, postgres, kafdrop
+
+# Rebuild + restart one service from source
+docker compose up -d --build trade-ingestion-service
+docker compose up -d --build activity-monitor-service
+docker compose up -d --build alert-service
+docker compose up -d --build case-management-service
+
+# Follow logs (Ctrl+C to stop)
+docker compose logs -f trade-ingestion-service
+docker compose logs -f activity-monitor-service
+docker compose logs -f alert-service
+docker compose logs -f case-management-service
+
+# Whole stack
+docker compose up -d --build
+docker compose down
+docker compose ps
+
+# Kafdrop (topic/partition viewer): http://localhost:9000
+# Ports: trade-ingestion 8081, activity-monitor 8082, alert-service 8083, case-management 8084, kafka 9092, postgres 5432
+
+# Kafka NodeExistsException on restart -> Zookeeper still holds broker-1; wait ~20s and rerun
+```

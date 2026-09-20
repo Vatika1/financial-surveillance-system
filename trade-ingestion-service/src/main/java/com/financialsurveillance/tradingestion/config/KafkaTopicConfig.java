@@ -21,6 +21,7 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     private static final int PARTITIONS = 3;
+    private static final int TRADES_RAW_PARTITIONS = 6;
 
     private final KafkaTopicsProperties topics;
 
@@ -34,7 +35,7 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic tradesRawTopic() {
         return TopicBuilder.name(topics.tradesRaw())
-                .partitions(PARTITIONS)
+                .partitions(TRADES_RAW_PARTITIONS)
                 .replicas(replicationFactor)
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
