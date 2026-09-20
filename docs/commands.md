@@ -228,3 +228,14 @@ docker compose ps
 
 # Kafka NodeExistsException on restart -> Zookeeper still holds broker-1; wait ~20s and rerun
 ```
+
+## Load testing (k6)
+
+```powershell
+# Resolve the NLB hostname (changes every rebuild) and run
+$nlb = kubectl get svc trade-ingestion-service -o jsonpath="{.status.loadBalancer.ingress[0].hostname}"
+k6 run --env BASE_URL=http://$nlb .\scripts\load\trades.js
+
+# Baseline 2026-09-20: 178,316 iterations, 0% failures,
+# p95 676ms (threshold p(95)<500 FAILED), med 50ms, max 12.3s
+```
