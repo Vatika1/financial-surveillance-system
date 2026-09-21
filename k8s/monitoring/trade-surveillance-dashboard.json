@@ -4,22 +4,20 @@
   "metadata": {
     "name": "adgbp2w",
     "namespace": "default",
-    "uid": "3d1ae46d-f176-47e8-ad9a-a7f342c7aeac",
-    "resourceVersion": "1789957878231990",
-    "generation": 2,
-    "creationTimestamp": "2026-09-20T18:48:37Z",
+    "uid": "5e370e9d-cc8a-45aa-9bc7-7c70c3ecf175",
+    "resourceVersion": "1790018663385008",
+    "generation": 1,
+    "creationTimestamp": "2026-09-21T19:24:23Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "3067935628976128"
+      "grafana.app/deprecatedInternalID": "3439324006301696"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "sidecarProvider",
-      "grafana.app/sourceChecksum": "9188652ab2134b44c92c38ae2fef8526",
+      "grafana.app/sourceChecksum": "f64f5ed5989b03f0c438cac3c9bdb94e",
       "grafana.app/sourcePath": "/tmp/dashboards/trade-surveillance-dashboard.json",
-      "grafana.app/sourceTimestamp": "1789957878000",
-      "grafana.app/updatedBy": "access-policy:service",
-      "grafana.app/updatedTimestamp": "2026-09-21T02:31:18Z",
+      "grafana.app/sourceTimestamp": "1790018658000",
       "grafana.app/folder": ""
     }
   },
@@ -662,6 +660,557 @@
           "id": 14,
           "links": [],
           "title": "GC pause avg",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.2"
+          }
+        }
+      },
+      "panel-15": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "cloudwatch"
+                      },
+                      "group": "cloudwatch",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "dimensions": {
+                          "DBInstanceIdentifier": "surveillance-prod-db"
+                        },
+                        "expression": "",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "matchExact": false,
+                        "metricEditorMode": 0,
+                        "metricName": "CPUUtilization",
+                        "metricQueryType": 0,
+                        "namespace": "AWS/RDS",
+                        "period": "",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 15,
+          "links": [],
+          "title": "RDS CPU",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.2"
+          }
+        }
+      },
+      "panel-16": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "cloudwatch"
+                      },
+                      "group": "cloudwatch",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "dimensions": {
+                          "DBInstanceIdentifier": "surveillance-prod-db"
+                        },
+                        "expression": "",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "matchExact": false,
+                        "metricEditorMode": 0,
+                        "metricName": "CPUCreditBalance",
+                        "metricQueryType": 0,
+                        "namespace": "AWS/RDS",
+                        "period": "",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 16,
+          "links": [],
+          "title": "RDS CPU Credits",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.2"
+          }
+        }
+      },
+      "panel-17": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "cloudwatch"
+                      },
+                      "group": "cloudwatch",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "dimensions": {
+                          "DBInstanceIdentifier": "surveillance-prod-db"
+                        },
+                        "expression": "",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "matchExact": false,
+                        "metricEditorMode": 0,
+                        "metricName": "DatabaseConnections",
+                        "metricQueryType": 0,
+                        "namespace": "AWS/RDS",
+                        "period": "",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 17,
+          "links": [],
+          "title": "RDS Connections",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.2"
+          }
+        }
+      },
+      "panel-18": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "cloudwatch"
+                      },
+                      "group": "cloudwatch",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "dimensions": {
+                          "DBInstanceIdentifier": "surveillance-prod-db"
+                        },
+                        "expression": "",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "matchExact": false,
+                        "metricEditorMode": 0,
+                        "metricName": "ReadLatency",
+                        "metricQueryType": 0,
+                        "namespace": "AWS/RDS",
+                        "period": "",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "cloudwatch"
+                      },
+                      "group": "cloudwatch",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "dimensions": {
+                          "DBInstanceIdentifier": "surveillance-prod-db"
+                        },
+                        "expression": "",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "matchExact": false,
+                        "metricEditorMode": 0,
+                        "metricName": "WriteLatency",
+                        "metricQueryType": 0,
+                        "namespace": "AWS/RDS",
+                        "period": "",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 18,
+          "links": [],
+          "title": "RDS Latency",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -1845,6 +2394,58 @@
               "width": 12,
               "x": 12,
               "y": 48
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-15"
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 56
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-16"
+              },
+              "height": 8,
+              "width": 12,
+              "x": 12,
+              "y": 56
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-17"
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 64
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-18"
+              },
+              "height": 8,
+              "width": 12,
+              "x": 12,
+              "y": 64
             }
           }
         ]

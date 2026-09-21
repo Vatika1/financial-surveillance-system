@@ -79,8 +79,9 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create msk-secret" -ForegroundC
 Write-Host "`n[4c/5] Installing kube-prometheus-stack..." -ForegroundColor Cyan
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>$null
 helm repo update
+$grafanaValues = Join-Path $k8sPath "monitoring\grafana-values.yaml"
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack `
-    --namespace monitoring --create-namespace --wait --timeout 10m
+    --namespace monitoring --create-namespace -f $grafanaValues --wait --timeout 10m
 if ($LASTEXITCODE -ne 0) { Write-Host "Helm install failed" -ForegroundColor Red; exit 1 }
 
 $dashboardFile = Join-Path $k8sPath "monitoring\trade-surveillance-dashboard.json"
@@ -89,6 +90,8 @@ kubectl create configmap trade-surveillance-dashboard `
     --namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 if ($LASTEXITCODE -ne 0) { Write-Host "Dashboard ConfigMap failed" -ForegroundColor Red; exit 1 }
 kubectl label configmap trade-surveillance-dashboard grafana_dashboard=1 --namespace monitoring --overwrite
+kubectl apply -f (Join-Path $k8sPath "monitoring\cloudwatch-datasource.yaml")
+if ($LASTEXITCODE -ne 0) { Write-Host "CloudWatch datasource ConfigMap failed" -ForegroundColor Red; exit 1 }
 
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan

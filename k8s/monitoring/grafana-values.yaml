@@ -1,0 +1,6 @@
+grafana:
+  serviceAccount:
+    create: true
+    name: monitoring-grafana
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::674326380423:role/surveillance-grafana-cloudwatch
