@@ -2,7 +2,26 @@
   "apiVersion": "dashboard.grafana.app/v2",
   "kind": "Dashboard",
   "metadata": {
-    "name": "adgbp2w"
+    "name": "adgbp2w",
+    "namespace": "default",
+    "uid": "3d1ae46d-f176-47e8-ad9a-a7f342c7aeac",
+    "resourceVersion": "1789957878231990",
+    "generation": 2,
+    "creationTimestamp": "2026-09-20T18:48:37Z",
+    "labels": {
+      "grafana.app/deprecatedInternalID": "3067935628976128"
+    },
+    "annotations": {
+      "grafana.app/createdBy": "access-policy:service",
+      "grafana.app/managedBy": "classic-file-provisioning",
+      "grafana.app/managerId": "sidecarProvider",
+      "grafana.app/sourceChecksum": "9188652ab2134b44c92c38ae2fef8526",
+      "grafana.app/sourcePath": "/tmp/dashboards/trade-surveillance-dashboard.json",
+      "grafana.app/sourceTimestamp": "1789957878000",
+      "grafana.app/updatedBy": "access-policy:service",
+      "grafana.app/updatedTimestamp": "2026-09-21T02:31:18Z",
+      "grafana.app/folder": ""
+    }
   },
   "spec": {
     "annotations": [
@@ -125,7 +144,8 @@
                         "value": 80
                       }
                     ]
-                  }
+                  },
+                  "unit": "reqps"
                 },
                 "overrides": []
               },
@@ -812,7 +832,8 @@
                         "value": 80
                       }
                     ]
-                  }
+                  },
+                  "unit": "reqps"
                 },
                 "overrides": []
               },
@@ -926,7 +947,8 @@
                         "value": 80
                       }
                     ]
-                  }
+                  },
+                  "unit": "s"
                 },
                 "overrides": []
               },
@@ -1040,7 +1062,8 @@
                         "value": 80
                       }
                     ]
-                  }
+                  },
+                  "unit": "short"
                 },
                 "overrides": []
               },
@@ -1384,7 +1407,8 @@
                         "value": 80
                       }
                     ]
-                  }
+                  },
+                  "unit": "reqps"
                 },
                 "overrides": []
               },
