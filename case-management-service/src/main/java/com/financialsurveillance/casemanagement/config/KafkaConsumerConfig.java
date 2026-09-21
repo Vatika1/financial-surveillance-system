@@ -50,6 +50,9 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
+        // Batch consumption: up to 500 records per poll, matching hibernate.jdbc.batch_size.
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
+
         // Chunk 2: wrap deserializers so a malformed record becomes a DeserializationException
         // handed to the error handler instead of a poison pill that blocks the partition.
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
@@ -72,6 +75,7 @@ public class KafkaConsumerConfig {
 
         factory.setConsumerFactory(caseConsumerFactory());
         factory.setConcurrency(3);
+        factory.setBatchListener(true);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.getContainerProperties().setPollTimeout(3000);
         factory.setCommonErrorHandler(kafkaErrorHandler());

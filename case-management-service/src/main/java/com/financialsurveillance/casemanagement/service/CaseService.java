@@ -14,6 +14,7 @@ import com.financialsurveillance.events.AlertPersistedEvent;
 import com.financialsurveillance.events.CaseClosedEvent;
 import com.financialsurveillance.events.CaseCreatedEvent;
 import com.financialsurveillance.events.CaseStatus;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +36,7 @@ public class CaseService {
     private final CaseEventProducer producer;
     private final CaseActionRepository caseActionRepository;
     private final CaseMapper caseMapper;
+    private final EntityManager entityManager;
 
     public CaseDetailResponse getCaseById(UUID caseId){
         Case caseEntity = caseRepository.findById(caseId)
@@ -78,7 +81,7 @@ public class CaseService {
                 .performedBy("system")
                 .build();
 
-         caseActionRepository.save(caseAction);
+        caseActionRepository.save(caseAction);
 
         CaseCreatedEvent caseEvent = CaseCreatedEvent.builder()
                 .createdAt(savedCase.getCreatedAt())
@@ -89,6 +92,53 @@ public class CaseService {
                 .build();
 
         producer.publishCaseCreated(caseEvent);
+    }
+
+    /**
+     * Batch version of createCaseFromAlert. Caller has already removed duplicates.
+     * Uses persist() rather than save() so no SELECT-before-INSERT per row;
+     * Hibernate flushes cases and case_actions as batched INSERTs at commit.
+     */
+    @Transactional
+    public void createCasesFromAlerts(List<AlertPersistedEvent> events) {
+        log.info("Creating {} cases from alert batch", events.size());
+
+        ZonedDateTime now = ZonedDateTime.now();
+        List<CaseCreatedEvent> caseEvents = new ArrayList<>(events.size());
+
+        for (AlertPersistedEvent event : events) {
+            log.info("Creating case for Alert {}", event.getAlertId());
+            Case newCase = Case.builder()
+                    .id(UUID.randomUUID())
+                    .alertId(event.getAlertId())
+                    .createdAt(event.getCreatedAt())
+                    .advisorId(event.getAdvisorId())
+                    .status(CaseStatus.OPEN)
+                    .updatedAt(now)
+                    .build();
+            entityManager.persist(newCase);
+
+            CaseAction caseAction = CaseAction.builder()
+                    .id(UUID.randomUUID())
+                    .actionType(ActionType.CASE_CREATED)
+                    .caseId(newCase.getId())
+                    .performedAt(now)
+                    .performedBy("system")
+                    .build();
+            entityManager.persist(caseAction);
+
+            caseEvents.add(CaseCreatedEvent.builder()
+                    .createdAt(newCase.getCreatedAt())
+                    .caseId(newCase.getId())
+                    .alertId(newCase.getAlertId())
+                    .advisorId(newCase.getAdvisorId())
+                    .status(newCase.getStatus())
+                    .build());
+        }
+
+        for (CaseCreatedEvent caseEvent : caseEvents) {
+            producer.publishCaseCreated(caseEvent);
+        }
     }
 
     @Transactional
