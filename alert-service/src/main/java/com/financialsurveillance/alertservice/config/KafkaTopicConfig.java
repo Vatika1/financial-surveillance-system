@@ -20,7 +20,7 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic alertsPersistedTopic() {
         return TopicBuilder.name("alerts.persisted")
-                .partitions(3)
+                .partitions(6)
                 .replicas(replicationFactor)
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
