@@ -17,6 +17,7 @@
                 <includeMdcKeyName>correlationId</includeMdcKeyName>
                 <includeMdcKeyName>trace_id</includeMdcKeyName>
                 <includeMdcKeyName>span_id</includeMdcKeyName>
+                <includeContext>false</includeContext>
             </encoder>
         </appender>
         <root level="INFO">
