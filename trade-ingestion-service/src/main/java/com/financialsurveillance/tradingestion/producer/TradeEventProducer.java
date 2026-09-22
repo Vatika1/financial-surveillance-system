@@ -5,10 +5,13 @@ import com.financialsurveillance.tradingestion.config.KafkaTopicsProperties;
 import com.financialsurveillance.tradingestion.exception.TradePublishException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.MDC;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -56,9 +59,17 @@ public class TradeEventProducer {
         String key = event.getAdvisorId();
         String tradeId = event.getTradeId();
 
+        ProducerRecord<String, TradeCreatedEvent> record =
+                new ProducerRecord<>(topics.tradesRaw(), key, event);
+
+        String correlationId = MDC.get("correlationId");
+        if (correlationId != null) {
+            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+        }
+
         try {
             SendResult<String, TradeCreatedEvent> result = kafkaTemplate
-                    .send(topics.tradesRaw(), key, event)
+                    .send(record)
                     .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
             log.info("Event published tradeId={} advisorId={} topic={} partition={} offset={}",

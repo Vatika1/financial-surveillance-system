@@ -3,12 +3,15 @@ package com.financialsurveillance.casemanagement.consumer;
 import com.financialsurveillance.events.AlertPersistedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -22,9 +25,15 @@ public class AlertPersistedEventConsumer {
             groupId = "case-management-service",
             containerFactory = "caseKafkaListenerContainerFactory"
     )
-    public void consume(List<AlertPersistedEvent> events, Acknowledgment ack) {
-
-        log.info("Received batch of {} alerts", events.size());
+    public void consume(List<ConsumerRecord<String, AlertPersistedEvent>> records, Acknowledgment ack) {
+        List<AlertPersistedEvent> events = records.stream().map(ConsumerRecord::value).toList();
+        List<String> correlationIds = records.stream()
+                .map(r -> r.headers().lastHeader("correlationId"))
+                .filter(Objects::nonNull)
+                .map(h -> new String(h.value(), StandardCharsets.UTF_8))
+                .distinct()
+                .toList();
+        log.info("Received batch of {} alerts correlationIds={}", events.size(), correlationIds);
 
         // Find the first invalid record. Everything before it is processed normally;
         // the invalid one goes to the DLT; everything after it is redelivered on the next poll.

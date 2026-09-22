@@ -1,16 +1,20 @@
 package com.financialsurveillance.casemanagement.producer;
 
+import com.financialsurveillance.events.AlertPersistedEvent;
 import com.financialsurveillance.events.CaseClosedEvent;
 import com.financialsurveillance.events.CaseCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -30,8 +34,15 @@ public class CaseEventProducer {
     public void publishCaseCreated(CaseCreatedEvent event){
         String key = event.getAdvisorId();
 
+        ProducerRecord<String, Object> record =
+                new ProducerRecord<>(topicCaseCreated, key, event);
+        String correlationId = MDC.get("correlationId");
+        if (correlationId != null) {
+            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+        }
+
         CompletableFuture<SendResult<String, Object>> future =
-                kafkaTemplate.send(topicCaseCreated, key, event);
+                kafkaTemplate.send(record);
 
         future.whenComplete((result, throwable) -> {
             if (throwable != null) {
@@ -62,8 +73,15 @@ public class CaseEventProducer {
     public void publishCaseClosed(CaseClosedEvent event){
         String key = event.getAdvisorId();
 
+        ProducerRecord<String, Object> record =
+                new ProducerRecord<>(topicCaseClosed, key, event);
+        String correlationId = MDC.get("correlationId");
+        if (correlationId != null) {
+            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+        }
+
         CompletableFuture<SendResult<String, Object>> future =
-                kafkaTemplate.send(topicCaseClosed, key, event);
+                kafkaTemplate.send(record);
 
         future.whenComplete((result, throwable) -> {
             if (throwable != null) {

@@ -6,13 +6,16 @@ import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertStatus;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,9 +67,16 @@ public class AlertEventProducer {
                 .status(AlertStatus.OPEN)
                 .build();
 
+        ProducerRecord<String, AlertCreatedEvent> record =
+                new ProducerRecord<>(topic, key, alertCreatedEvent);
+        String correlationId = MDC.get("correlationId");
+        if (correlationId != null) {
+            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+        }
+
         try {
             SendResult<String, AlertCreatedEvent> result = kafkaTemplate
-                    .send(topic, key, alertCreatedEvent)
+                    .send(record)
                     .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
             log.info("Published AlertCreatedEvent. tradeId={} alertId={} topic={} partition={} offset={}",

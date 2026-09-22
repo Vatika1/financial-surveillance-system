@@ -41,7 +41,7 @@ public class AlertEventConsumerTest {
         AlertCreatedEvent event = getAlertCreatedEvent();
         Acknowledgment ack = mock(Acknowledgment.class);
 
-        alertEventConsumer.consume(event, ack);
+        alertEventConsumer.consume(event, null, ack);
         verify(alertProcessor).processInTransaction(event);
         verify(ack).acknowledge();
     }
@@ -53,7 +53,7 @@ public class AlertEventConsumerTest {
         event.setAlertId(null);
 
         assertThrows(IllegalArgumentException.class, () -> {
-            alertEventConsumer.consume(event, ack);
+            alertEventConsumer.consume(event, null, ack);
         });
 
         verify(alertProcessor, never()).processInTransaction(event);
@@ -68,7 +68,7 @@ public class AlertEventConsumerTest {
         doThrow(new DataIntegrityViolationException("Duplicate alert: " + event.getAlertId()))
                 .when(alertProcessor).processInTransaction(any());
 
-        alertEventConsumer.consume(event, ack);
+        alertEventConsumer.consume(event, null, ack);
         verify(alertProcessor).processInTransaction(event);
         verify(ack).acknowledge();
     }

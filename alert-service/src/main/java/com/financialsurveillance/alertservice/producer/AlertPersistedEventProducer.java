@@ -5,13 +5,16 @@ import com.financialsurveillance.alertservice.exception.AlertPersistedPublishExc
 import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.AlertPersistedEvent;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ExecutionException;
@@ -46,9 +49,16 @@ public class AlertPersistedEventProducer {
                 .violationDetails(dto.getViolationDetails())
                 .build();
 
+        ProducerRecord<String, AlertPersistedEvent> record =
+                new ProducerRecord<>(topic, key, alertPersistedEvent);
+        String correlationId = MDC.get("correlationId");
+        if (correlationId != null) {
+            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+        }
+
         try {
             SendResult<String, AlertPersistedEvent> result = kafkaTemplate
-                    .send(topic, key, alertPersistedEvent)
+                    .send(record)
                     .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 
             log.info("Published AlertPersistedEvent. alertId={} alertTypeId={} tradeId={} topic={} partition={} offset={}",

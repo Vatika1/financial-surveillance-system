@@ -41,7 +41,7 @@ public class TradeEventConsumerTest {
     void ConsumeTrade_ShouldSuccessfullyConsume(){
         TradeCreatedEvent event = getTradeCreatedEvent();
         Acknowledgment ack = mock(Acknowledgment.class);
-        tradeEventConsumer.consume(event, ack);
+        tradeEventConsumer.consume(event, null, ack);
         verify(tradeProcessor).processInTransaction(event);
         verify(ack).acknowledge();
     }
@@ -52,7 +52,7 @@ public class TradeEventConsumerTest {
         Acknowledgment ack = mock(Acknowledgment.class);
         event.setTradeId(null);
         assertThrows(IllegalArgumentException.class, () -> {
-            tradeEventConsumer.consume(event, ack);
+            tradeEventConsumer.consume(event, null, ack);
         });
 
         verify(tradeProcessor, never()).processInTransaction(event);
@@ -67,7 +67,7 @@ public class TradeEventConsumerTest {
         doThrow(new DataIntegrityViolationException("Duplicate trade: " + event1.getTradeId()))
                 .when(tradeProcessor).processInTransaction(any());
 
-            tradeEventConsumer.consume(event1, ack);
+            tradeEventConsumer.consume(event1, null, ack);
 
         verify(tradeProcessor).processInTransaction(event1);
         verify(ack).acknowledge();
@@ -81,7 +81,7 @@ public class TradeEventConsumerTest {
                 .when(tradeProcessor).processInTransaction(any());
 
         assertThrows(RuntimeException.class, () -> {
-            tradeEventConsumer.consume(event, ack);
+            tradeEventConsumer.consume(event, null, ack);
         });
         verify(tradeProcessor).processInTransaction(event);
         verify(ack, never()).acknowledge();
