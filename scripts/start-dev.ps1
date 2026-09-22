@@ -103,6 +103,22 @@ helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler `
     --namespace kube-system -f $autoscalerValues --wait --timeout 5m
 if ($LASTEXITCODE -ne 0) { Write-Host "Cluster autoscaler install failed" -ForegroundColor Red; exit 1 }
 
+# ===== STEP 4e: Logging (Loki + Fluent Bit) =====
+Write-Host "`n[4e/5] Installing Loki and Fluent Bit..." -ForegroundColor Cyan
+helm repo add grafana https://grafana.github.io/helm-charts 2>$null
+helm repo add fluent https://fluent.github.io/helm-charts 2>$null
+helm repo update
+$lokiValues = Join-Path $k8sPath "monitoring\loki-values.yaml"
+helm upgrade --install loki grafana/loki `
+    --namespace monitoring -f $lokiValues --wait --timeout 5m
+if ($LASTEXITCODE -ne 0) { Write-Host "Loki install failed" -ForegroundColor Red; exit 1 }
+$fluentBitValues = Join-Path $k8sPath "monitoring\fluent-bit-values.yaml"
+helm upgrade --install fluent-bit fluent/fluent-bit `
+    --namespace monitoring -f $fluentBitValues --wait --timeout 5m
+if ($LASTEXITCODE -ne 0) { Write-Host "Fluent Bit install failed" -ForegroundColor Red; exit 1 }
+kubectl apply -f (Join-Path $k8sPath "monitoring\loki-datasource.yaml")
+if ($LASTEXITCODE -ne 0) { Write-Host "Loki datasource ConfigMap failed" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
 foreach ($svc in "trade-ingestion","activity-monitor","alert-service","case-management") {
