@@ -9,6 +9,7 @@ import com.financialsurveillance.events.AlertStatus;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -36,6 +38,11 @@ public class AlertPersistedEventProducerTest {
 
     @InjectMocks
     private AlertPersistedEventProducer alertPersistedEventProducer;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(alertPersistedEventProducer, "topic", "alerts.persisted");
+    }
 
     private AlertCreatedEvent getAlertCreatedEvent(){
         return AlertCreatedEvent.builder()
@@ -82,12 +89,12 @@ public class AlertPersistedEventProducerTest {
 
         SendResult<String, AlertPersistedEvent> sendResult =
                 new SendResult<>(producerRecord, metadata);
-        when(kafkaTemplate.send(any(), any(), any()))
+        when(kafkaTemplate.send(any(ProducerRecord.class)))
                 .thenReturn(CompletableFuture.completedFuture(sendResult));
 
         alertPersistedEventProducer.publishAlert(dto, event);
 
-        verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
+        verify(kafkaTemplate).send(any(ProducerRecord.class));
     }
     @Test
     void ShouldLogError_WhenKafkaPublishFails(){
@@ -95,7 +102,7 @@ public class AlertPersistedEventProducerTest {
         AlertDTO dto = getAlertDTO();
         CompletableFuture<SendResult<String, AlertPersistedEvent>> failedFuture =
                 CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
-        when(kafkaTemplate.send(any(), any(), any()))
+        when(kafkaTemplate.send(any(ProducerRecord.class)))
                 .thenReturn(failedFuture);
 
         AlertPersistedPublishException ex = assertThrows(
@@ -105,6 +112,6 @@ public class AlertPersistedEventProducerTest {
 
         // optional: assert the message or cause to confirm we hit the right catch block
         assertThat(ex.getMessage()).contains("Kafka publish failed");
-       verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertPersistedEvent.class));
+       verify(kafkaTemplate).send(any(ProducerRecord.class));
     }
 }

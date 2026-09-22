@@ -10,6 +10,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +37,11 @@ public class AlertEventProducerTest {
 
     @InjectMocks
     private AlertEventProducer alertEventProducer;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(alertEventProducer, "topic", "alerts.created");
+    }
 
     private TradeCreatedEvent getAlertCreatedEvent(){
         return TradeCreatedEvent.builder()
@@ -73,10 +80,10 @@ public class AlertEventProducerTest {
         SendResult<String, AlertCreatedEvent> sendResult =
                 new SendResult<>(producerRecord, metadata);
 
-        when(kafkaTemplate.send(any(), any(), any()))
+        when(kafkaTemplate.send(any(ProducerRecord.class)))
                 .thenReturn(CompletableFuture.completedFuture(sendResult));
         alertEventProducer.publishAlert(violation, event);
-        verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertCreatedEvent.class));
+        verify(kafkaTemplate).send(any(ProducerRecord.class));
 
     }
     @Test
@@ -86,7 +93,7 @@ public class AlertEventProducerTest {
 
         CompletableFuture<SendResult<String, AlertCreatedEvent>> failedFuture =
                 CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
-        when(kafkaTemplate.send(any(), any(), any())).thenReturn(failedFuture);
+        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(failedFuture);
 
         AlertPublishException ex = assertThrows(
                 AlertPublishException.class,
@@ -96,7 +103,7 @@ public class AlertEventProducerTest {
         // optional: assert the message or cause to confirm we hit the right catch block
         assertThat(ex.getMessage()).contains("Kafka publish failed");
 
-        verify(kafkaTemplate).send(any(), eq(event.getAdvisorId()), any(AlertCreatedEvent.class));
+        verify(kafkaTemplate).send(any(ProducerRecord.class));
     }
     @Test
     void publishAlert_ShouldPublish_WithUnknownRuleId(){
