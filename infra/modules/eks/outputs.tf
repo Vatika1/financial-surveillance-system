@@ -21,3 +21,7 @@ output "node_security_group_id" {
 output "grafana_role_arn" {
   value = aws_iam_role.grafana_cloudwatch.arn
 }
+
+output "cluster_autoscaler_role_arn" {
+  value = aws_iam_role.cluster_autoscaler.arn
+}

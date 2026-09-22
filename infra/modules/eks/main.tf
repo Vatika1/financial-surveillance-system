@@ -90,6 +90,8 @@ resource "aws_eks_node_group" "main" {
   ]
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-node"
+    Name                                                = "${var.project_name}-${var.environment}-node"
+    "k8s.io/cluster-autoscaler/enabled"                 = "true"
+    "k8s.io/cluster-autoscaler/${var.project_name}-${var.environment}" = "owned"
   }
 }

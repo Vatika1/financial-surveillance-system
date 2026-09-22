@@ -1,0 +1,13 @@
+autoDiscovery:
+  clusterName: surveillance-prod
+awsRegion: us-east-1
+rbac:
+  serviceAccount:
+    create: true
+    name: cluster-autoscaler
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::674326380423:role/surveillance-cluster-autoscaler
+extraArgs:
+  balance-similar-node-groups: true
+  skip-nodes-with-system-pods: false
+  scale-down-unneeded-time: 5m

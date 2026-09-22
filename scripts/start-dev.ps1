@@ -93,6 +93,16 @@ kubectl label configmap trade-surveillance-dashboard grafana_dashboard=1 --names
 kubectl apply -f (Join-Path $k8sPath "monitoring\cloudwatch-datasource.yaml")
 if ($LASTEXITCODE -ne 0) { Write-Host "CloudWatch datasource ConfigMap failed" -ForegroundColor Red; exit 1 }
 
+
+# ===== STEP 4d: Cluster autoscaler =====
+Write-Host "`n[4d/5] Installing cluster-autoscaler..." -ForegroundColor Cyan
+helm repo add autoscaler https://kubernetes.github.io/autoscaler 2>$null
+helm repo update
+$autoscalerValues = Join-Path $k8sPath "monitoring\cluster-autoscaler-values.yaml"
+helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler `
+    --namespace kube-system -f $autoscalerValues --wait --timeout 5m
+if ($LASTEXITCODE -ne 0) { Write-Host "Cluster autoscaler install failed" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
 foreach ($svc in "trade-ingestion","activity-monitor","alert-service","case-management") {
