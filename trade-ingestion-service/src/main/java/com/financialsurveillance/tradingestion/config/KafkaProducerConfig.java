@@ -1,6 +1,7 @@
 package com.financialsurveillance.tradingestion.config;
 
 import com.financialsurveillance.events.TradeCreatedEvent;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.MicrometerProducerListener;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -30,7 +32,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<String, TradeCreatedEvent> producerFactory() {
+    public ProducerFactory<String, TradeCreatedEvent> producerFactory(MeterRegistry meterRegistry) {
         // Start with all Spring Kafka yml properties (includes SSL config in prod)
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
 
@@ -55,11 +57,14 @@ public class KafkaProducerConfig {
         // Batch messages for better throughput
         props.put(ProducerConfig.LINGER_MS_CONFIG, 5);
 
-        return new DefaultKafkaProducerFactory<>(props);
+        DefaultKafkaProducerFactory<String, TradeCreatedEvent> factory = new DefaultKafkaProducerFactory<>(props);
+        factory.addListener(new MicrometerProducerListener<>(meterRegistry));
+        return factory;
     }
 
     @Bean
-    public KafkaTemplate<String, TradeCreatedEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, TradeCreatedEvent> kafkaTemplate(ProducerFactory<String, TradeCreatedEvent> producerFactory) {
+
+        return new KafkaTemplate<>(producerFactory);
     }
 }

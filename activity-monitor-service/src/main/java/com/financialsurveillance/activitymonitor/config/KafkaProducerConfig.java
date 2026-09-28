@@ -1,6 +1,8 @@
 package com.financialsurveillance.activitymonitor.config;
 
 import com.financialsurveillance.events.AlertCreatedEvent;
+import com.financialsurveillance.events.TradeCreatedEvent;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -9,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.MicrometerProducerListener;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -22,7 +25,7 @@ public class KafkaProducerConfig {
     private final KafkaProperties kafkaProperties;
 
     @Bean
-    public ProducerFactory<String, AlertCreatedEvent> alertProducerFactory() {
+    public ProducerFactory<String, AlertCreatedEvent> alertProducerFactory(MeterRegistry meterRegistry) {
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
 
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -45,11 +48,13 @@ public class KafkaProducerConfig {
         // Limit in-flight requests to preserve ordering with retries
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
 
-        return new DefaultKafkaProducerFactory<>(props);
+        DefaultKafkaProducerFactory<String, AlertCreatedEvent> factory = new DefaultKafkaProducerFactory<>(props);
+        factory.addListener(new MicrometerProducerListener<>(meterRegistry));
+        return factory;
     }
 
     @Bean
-    public KafkaTemplate<String, AlertCreatedEvent> alertKafkaTemplate() {
-        return new KafkaTemplate<>(alertProducerFactory());
+    public KafkaTemplate<String, AlertCreatedEvent> alertKafkaTemplate(ProducerFactory<String, AlertCreatedEvent> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
     }
 }
