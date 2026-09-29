@@ -127,9 +127,12 @@ foreach ($svc in "trade-ingestion","activity-monitor","alert-service","case-mana
         --repository-name "surveillance-prod/$repo" `
         --region us-east-1 `
         --query "sort_by(imageDetails,&imagePushedAt)[-1].imageTags[?@!='latest'] | [0]" `
-        --output text
-    if ([string]::IsNullOrWhiteSpace($tag) -or $tag -eq "None") {
+        --output json | ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace($tag)) {
         Write-Host "No image found in ECR for $repo" -ForegroundColor Red; exit 1
+    }
+    if ($tag -match '\s') {
+        Write-Host "Malformed tag for ${repo}: '$tag'" -ForegroundColor Red; exit 1
     }
     Write-Host "  $svc -> $tag" -ForegroundColor DarkGray
     Get-ChildItem (Join-Path $k8sPath $svc) -Filter *.yaml | ForEach-Object {
