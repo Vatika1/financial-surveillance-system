@@ -47,6 +47,8 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 500);
+
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, AlertCreatedEvent.class.getName());
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
@@ -66,6 +68,9 @@ public class KafkaConsumerConfig {
 
         // 2️⃣ Enable parallel consumption
         factory.setConcurrency(3);
+
+        //for batch processing
+        factory.setBatchListener(true);
 
         // 3️⃣ Manual acknowledgment (YOU control offset commit)
         factory.getContainerProperties().setAckMode(

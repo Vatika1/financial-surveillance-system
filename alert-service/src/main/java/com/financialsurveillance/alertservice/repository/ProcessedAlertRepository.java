@@ -3,5 +3,7 @@ package com.financialsurveillance.alertservice.repository;
 import com.financialsurveillance.alertservice.domain.ProcessedAlert;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProcessedAlertRepository  extends JpaRepository<ProcessedAlert, String> {
+import java.util.UUID;
+
+public interface ProcessedAlertRepository  extends JpaRepository<ProcessedAlert, UUID> {
 }
