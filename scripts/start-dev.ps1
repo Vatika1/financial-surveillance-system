@@ -119,6 +119,16 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Fluent Bit install failed" -ForegroundCol
 kubectl apply -f (Join-Path $k8sPath "monitoring\loki-datasource.yaml")
 if ($LASTEXITCODE -ne 0) { Write-Host "Loki datasource ConfigMap failed" -ForegroundColor Red; exit 1 }
 
+
+# ===== STEP 4f: Tracing (Tempo) =====
+Write-Host "`n[4f/5] Installing Tempo..." -ForegroundColor Cyan
+$tempoValues = Join-Path $k8sPath "monitoring\tempo-values.yaml"
+helm upgrade --install tempo grafana/tempo `
+    --namespace monitoring -f $tempoValues --wait --timeout 5m
+if ($LASTEXITCODE -ne 0) { Write-Host "Tempo install failed" -ForegroundColor Red; exit 1 }
+kubectl apply -f (Join-Path $k8sPath "monitoring\tempo-datasource.yaml")
+if ($LASTEXITCODE -ne 0) { Write-Host "Tempo datasource ConfigMap failed" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan
 foreach ($svc in "trade-ingestion","activity-monitor","alert-service","case-management") {
