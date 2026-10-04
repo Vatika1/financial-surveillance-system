@@ -4,20 +4,20 @@
   "metadata": {
     "name": "adgbp2w",
     "namespace": "default",
-    "uid": "5e370e9d-cc8a-45aa-9bc7-7c70c3ecf175",
-    "resourceVersion": "1790018663385008",
+    "uid": "e4cb52ef-0891-4be8-ae52-8081e807c828",
+    "resourceVersion": "1791080805813995",
     "generation": 1,
-    "creationTimestamp": "2026-09-21T19:24:23Z",
+    "creationTimestamp": "2026-10-04T02:26:45Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "3439324006301696"
+      "grafana.app/deprecatedInternalID": "3390672610873344"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "sidecarProvider",
-      "grafana.app/sourceChecksum": "f64f5ed5989b03f0c438cac3c9bdb94e",
+      "grafana.app/sourceChecksum": "04a3e8a5e210f5a01db76e8f5271b055",
       "grafana.app/sourcePath": "/tmp/dashboards/trade-surveillance-dashboard.json",
-      "grafana.app/sourceTimestamp": "1790018658000",
+      "grafana.app/sourceTimestamp": "1791080805000",
       "grafana.app/folder": ""
     }
   },
@@ -161,7 +161,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -275,7 +275,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -390,7 +390,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -505,7 +505,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -619,7 +619,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -734,7 +734,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -863,7 +863,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -992,7 +992,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1121,7 +1121,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1285,7 +1285,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1400,7 +1400,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1515,7 +1515,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1630,7 +1630,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1745,7 +1745,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1860,7 +1860,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -1975,7 +1975,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -2090,7 +2090,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       },
@@ -2205,7 +2205,7 @@
                 }
               }
             },
-            "version": "13.2.2"
+            "version": "13.2.3"
           }
         }
       }
@@ -2271,7 +2271,7 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-5"
+                "name": "panel-13"
               },
               "height": 8,
               "width": 12,
@@ -2297,7 +2297,7 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-7"
+                "name": "panel-5"
               },
               "height": 8,
               "width": 12,
@@ -2323,7 +2323,7 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-9"
+                "name": "panel-7"
               },
               "height": 8,
               "width": 12,
@@ -2349,7 +2349,7 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-11"
+                "name": "panel-9"
               },
               "height": 8,
               "width": 12,
@@ -2375,7 +2375,7 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
-                "name": "panel-13"
+                "name": "panel-11"
               },
               "height": 8,
               "width": 12,
