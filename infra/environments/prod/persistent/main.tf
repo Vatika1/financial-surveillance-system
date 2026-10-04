@@ -19,6 +19,7 @@ module "rds" {
   environment        = var.environment
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
+  db_instance_class = "db.t3.medium"
 }
 
 module "secrets_db" {
