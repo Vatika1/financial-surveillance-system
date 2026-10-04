@@ -21,7 +21,17 @@ spec:
             - containerPort: 8081
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -javaagent:/app/opentelemetry-javaagent.jar"
+            - name: OTEL_SERVICE_NAME
+              value: "trade-ingestion-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo.monitoring.svc.cluster.local:4318"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "http/protobuf"
+            - name: OTEL_METRICS_EXPORTER
+              value: "none"
+            - name: OTEL_LOGS_EXPORTER
+              value: "none"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL

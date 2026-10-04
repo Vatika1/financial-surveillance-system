@@ -20,5 +20,6 @@ RUN mvn package -f trade-ingestion-service/pom.xml -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/trade-ingestion-service/target/*.jar app.jar
+ADD --chmod=644 https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.10.0/opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]
