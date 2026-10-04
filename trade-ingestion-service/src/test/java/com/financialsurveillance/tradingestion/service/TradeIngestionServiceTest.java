@@ -36,6 +36,7 @@ class TradeIngestionServiceTest {
     @Mock private TradeMapper tradeMapper;
     @Mock private TradeEventProducer tradeEventProducer;
 
+
     private TradeRequest getTradeRequest() {
         return TradeRequest.builder()
                 .tradeId("TRD-001")
