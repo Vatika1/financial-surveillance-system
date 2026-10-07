@@ -20,5 +20,6 @@ RUN mvn package -f case-management-service/pom.xml -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/case-management-service/target/*.jar app.jar
+ADD --chmod=644 https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.10.0/opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
 EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "app.jar"]
