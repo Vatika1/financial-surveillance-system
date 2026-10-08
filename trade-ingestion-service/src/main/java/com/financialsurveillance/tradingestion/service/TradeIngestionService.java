@@ -1,6 +1,10 @@
 package com.financialsurveillance.tradingestion.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.financialsurveillance.events.TradeCreatedEvent;
+import com.financialsurveillance.tradingestion.config.KafkaTopicsProperties;
+import com.financialsurveillance.tradingestion.domain.OutboxEvent;
 import com.financialsurveillance.tradingestion.domain.Trade;
 import com.financialsurveillance.tradingestion.dto.TradeRequest;
 import com.financialsurveillance.tradingestion.dto.TradeResponse;
@@ -8,14 +12,17 @@ import com.financialsurveillance.tradingestion.exception.DuplicateTradeException
 import com.financialsurveillance.tradingestion.exception.InvalidTradeException;
 import com.financialsurveillance.tradingestion.mapper.TradeMapper;
 import com.financialsurveillance.tradingestion.producer.TradeEventProducer;
+import com.financialsurveillance.tradingestion.repository.OutboxEventRepository;
 import com.financialsurveillance.tradingestion.repository.TradeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -28,9 +35,11 @@ public class TradeIngestionService {
             "AMZN", "GOOGL", "META", "BAC", "WFC"
     ));
 
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
+    private final KafkaTopicsProperties topics;
     private final TradeRepository tradeRepository;
     private final TradeMapper tradeMapper;
-    private final TradeEventProducer tradeEventProducer;
 
     @Transactional
     public TradeResponse processTrade(TradeRequest request) {
@@ -44,9 +53,26 @@ public class TradeIngestionService {
                 savedTrade.getTradeId(), savedTrade.getAdvisorId());
 
         TradeCreatedEvent event = tradeMapper.toTradeCreatedEvent(savedTrade);
-        tradeEventProducer.publishTradeCreated(event);
+        outboxEventRepository.save(toOutboxEvent(event));
 
         return tradeMapper.toResponseDto(savedTrade);
+    }
+
+    private OutboxEvent toOutboxEvent(TradeCreatedEvent event) {
+        try {
+            String correlationId = MDC.get("correlationId");
+            String headers = correlationId == null ? null
+                    : objectMapper.writeValueAsString(Map.of("correlationId", correlationId));
+
+            return OutboxEvent.builder()
+                    .aggregateId(event.getTradeId())
+                    .topic(topics.tradesRaw())
+                    .payload(objectMapper.writeValueAsString(event))
+                    .headers(headers)
+                    .build();
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Could not serialize outbox event for tradeId=" + event.getTradeId(), e);
+        }
     }
 
     private void validateBusinessRules(TradeRequest request) {

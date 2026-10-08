@@ -55,14 +55,13 @@ public class TradeEventProducer {
      * @throws TradePublishException if the broker rejects the message,
      *         the send times out, or the thread is interrupted.
      */
-    public void publishTradeCreated(TradeCreatedEvent event) {
+    public void publishTradeCreated(TradeCreatedEvent event, String correlationId) {
         String key = event.getAdvisorId();
         String tradeId = event.getTradeId();
 
         ProducerRecord<String, TradeCreatedEvent> record =
                 new ProducerRecord<>(topics.tradesRaw(), key, event);
 
-        String correlationId = MDC.get("correlationId");
         if (correlationId != null) {
             record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
         }
