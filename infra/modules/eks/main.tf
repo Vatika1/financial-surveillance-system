@@ -83,6 +83,10 @@ resource "aws_eks_node_group" "main" {
     max_size     = var.node_max_size
   }
 
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
