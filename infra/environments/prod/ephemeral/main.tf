@@ -17,6 +17,16 @@ module "msk" {
   eks_node_security_group_id = module.eks.node_security_group_id
 }
 
+module "elasticache" {
+  source = "../../../modules/elasticache"
+
+  project_name               = var.project_name
+  environment                = var.environment
+  vpc_id                     = data.terraform_remote_state.persistent.outputs.vpc_id
+  private_subnet_ids         = data.terraform_remote_state.persistent.outputs.private_subnet_ids
+  eks_node_security_group_id = module.eks.node_security_group_id
+}
+
 module "secrets_kafka" {
   source = "../../../modules/secrets-kafka"
 
