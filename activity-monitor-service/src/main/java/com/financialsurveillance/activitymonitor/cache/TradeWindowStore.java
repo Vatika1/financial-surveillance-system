@@ -1,5 +1,6 @@
 package com.financialsurveillance.activitymonitor.cache;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.financialsurveillance.events.TradeCreatedEvent;
 
 import java.time.Duration;
