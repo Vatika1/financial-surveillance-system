@@ -78,7 +78,7 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create msk-secret" -ForegroundC
 
 # ===== STEP 4b2: ConfigMap 'redis-config' from Terraform output =====
 Write-Host "`n[4b2/5] Creating ConfigMap 'redis-config'..." -ForegroundColor Cyan
-$redisHost = terraform -chdir=$ephemeralPath output -raw redis_endpoint
+$redisHost = terraform output -raw redis_endpoint
 if ([string]::IsNullOrWhiteSpace($redisHost)) { Write-Host "Could not read redis_endpoint" -ForegroundColor Red; exit 1 }
 kubectl create configmap redis-config `
   --from-literal=host=$redisHost `
