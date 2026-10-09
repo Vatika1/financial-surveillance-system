@@ -75,6 +75,16 @@ kubectl create secret generic msk-secret `
 
 if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create msk-secret" -ForegroundColor Red; exit 1 }
 
+
+# ===== STEP 4b2: ConfigMap 'redis-config' from Terraform output =====
+Write-Host "`n[4b2/5] Creating ConfigMap 'redis-config'..." -ForegroundColor Cyan
+$redisHost = terraform -chdir=$ephemeralPath output -raw redis_endpoint
+if ([string]::IsNullOrWhiteSpace($redisHost)) { Write-Host "Could not read redis_endpoint" -ForegroundColor Red; exit 1 }
+kubectl create configmap redis-config `
+  --from-literal=host=$redisHost `
+  --dry-run=client -o yaml | kubectl apply -f -
+if ($LASTEXITCODE -ne 0) { Write-Host "Failed to create redis-config" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 4c: Install monitoring stack =====
 Write-Host "`n[4c/5] Installing kube-prometheus-stack..." -ForegroundColor Cyan
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>$null
