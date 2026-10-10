@@ -49,7 +49,6 @@ public class ActivityMonitorService {
                         }
                     }
                 });
-
         List<TradeCreatedEvent> recentTrades =
                 tradeWindowStore.getRecentTrades(event.getAdvisorId(), WINDOW);
 

@@ -29,14 +29,21 @@ public class RedisTradeWindowStore implements TradeWindowStore{
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Could not serialize trade " + trade.getTradeId(), e);
         }
-        String key = "window:" + trade.getAdvisorId();
+        String key = "window:" + advisorId;
         double score = trade.getTradeTimestamp().toInstant().toEpochMilli();            // epoch millis
         redisTemplate.opsForZSet().add(key, json, score);
     }
 
     @Override
     public void removeTrade(String advisorId, TradeCreatedEvent trade) {
-
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(trade); // convert here
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Could not serialize trade " + trade.getTradeId(), e);
+        }
+        String key = "window:" + advisorId;
+        redisTemplate.opsForZSet().remove(key, json);
     }
 
     @Override
