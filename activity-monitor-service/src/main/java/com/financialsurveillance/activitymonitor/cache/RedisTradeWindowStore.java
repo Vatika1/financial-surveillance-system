@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -12,11 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+
 @Primary
 @Service
 public class RedisTradeWindowStore implements TradeWindowStore{
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private static final Duration MAX_WINDOW = Duration.ofMinutes(15);
 
     public RedisTradeWindowStore(StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
@@ -70,7 +73,13 @@ public class RedisTradeWindowStore implements TradeWindowStore{
     }
 
     @Override
+    @Scheduled(fixedDelay = 60000)
     public void cleanUpTrades() {
+        Set <String> keys = redisTemplate.keys("window:*");
+        long cutoff = System.currentTimeMillis() - MAX_WINDOW.toMillis();
 
+        for(String key: keys){
+            redisTemplate.opsForZSet().removeRangeByScore(key, 0, cutoff);
+        }
     }
 }
