@@ -19,8 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +52,48 @@ public class AlertEventProducer {
             Map.entry("RULE_011", "CAT"),
             Map.entry("RULE_012", "LT")
     );
+
+    public void publishAll(List<AlertCreatedEvent> events){
+        String correlationId = MDC.get("correlationId");
+
+        List<CompletableFuture<SendResult<String, AlertCreatedEvent>>> futures =
+                new ArrayList<>(events.size());
+
+        for (AlertCreatedEvent event : events){
+            ProducerRecord<String, AlertCreatedEvent> record =
+                    new ProducerRecord<>(topic, event.getAdvisorId(), event);
+            if (correlationId != null) {
+                record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+            }
+            futures.add(kafkaTemplate.send(record));
+        }
+
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                    .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+            log.info("Published {} AlertCreatedEvents", events.size());
+        } catch (TimeoutException | ExecutionException e) {
+            throw new AlertPublishException("Batch publish failed, size=" + events.size(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AlertPublishException("Interrupted during batch publish", e);
+        }
+    }
+
+    public AlertCreatedEvent toAlertEvent(RuleViolationDTO violation, TradeCreatedEvent event){
+        return AlertCreatedEvent.builder()
+                .alertId(UUID.randomUUID())
+                .alertTypeId(generateAlertTypeId(violation.getRuleId()))
+                .createdAt(event.getCreatedAt())
+                .ruleId(violation.getRuleId())
+                .advisorId(violation.getAdvisorId())
+                .tradeId(violation.getTradeId())
+                .severity(violation.getSeverity())
+                .ruleName(violation.getRuleName())
+                .violationDetails(violation.getViolationDetails())
+                .status(AlertStatus.OPEN)
+                .build();
+    }
 
     public void publishAlert(RuleViolationDTO violation, TradeCreatedEvent event){
 
