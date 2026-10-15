@@ -8,6 +8,7 @@ Everything is PowerShell unless noted. `<name>` means substitute your value. Por
 | [aws.md](aws.md) | ECR, RDS, EKS kubeconfig, load balancer checks, teardown verification |
 | [terraform.md](terraform.md) | Persistent infra (RDS, ECR) changes |
 | [docker.md](docker.md) | Local Docker Compose stack, port conflicts |
+| [local-testing.md](local-testing.md) | Testing locally: sending trades, reading logs, Postgres, Redis, Kafka and DLT checks |
 | [k6.md](k6.md) | Load tests and manual trade generation |
 | [observability.md](observability.md) | Grafana, Prometheus, Loki, actuator metrics, PromQL |
 | [powershell.md](powershell.md) | PowerShell gotchas |
