@@ -68,7 +68,6 @@ public class RedisTradeWindowStore implements TradeWindowStore{
             }
             recentTradesList.add(trade);
         }
-        System.out.println("getRecentTrades " + key + " -> " + recentTradesList.size());
         return recentTradesList;
     }
 
