@@ -10,6 +10,7 @@ All in `us-east-1`.
 |---|---|
 | `aws eks update-kubeconfig --name surveillance-prod --region us-east-1` | Point kubectl at the cluster. start-dev does this; run manually after a new cluster if kubectl says "connection refused". |
 | `aws rds describe-db-instances --db-instance-identifier surveillance-prod-db --region us-east-1 --query "DBInstances[0].[DBInstanceStatus,Endpoint.Address]"` | RDS status and host. |
+| `aws elasticache describe-replication-groups --region us-east-1 --query "ReplicationGroups[].[ReplicationGroupId,Status]" --output table` | Redis status (`available` once start-dev finishes). |
 
 ## ECR
 
@@ -32,7 +33,7 @@ Repo names: `trade-ingestion-service`, `activity-monitor-service`, `alert-servic
 
 ## Teardown verification
 
-Run after `stop-dev.ps1`. Expected output, in order: `[]`, `[]`, `"deleted"`, `[]`.
+Run after `stop-dev.ps1`. Expected output, in order: `[]`, `[]`, `"deleted"`, `[]`, `[]`.
 
 | Command | What it proves |
 |---|---|
@@ -40,6 +41,7 @@ Run after `stop-dev.ps1`. Expected output, in order: `[]`, `[]`, `"deleted"`, `[
 | `aws kafka list-clusters --region us-east-1 --query "ClusterInfoList[].State"` | No MSK brokers |
 | `aws ec2 describe-nat-gateways --region us-east-1 --query "NatGateways[].State"` | NAT gateway gone (shows deleted for a while, then disappears) |
 | `aws elbv2 describe-load-balancers --region us-east-1 --query "LoadBalancers[].LoadBalancerName"` | No stranded NLB — Kubernetes creates these outside Terraform, so `terraform destroy` never sees them |
+| `aws elasticache describe-replication-groups --region us-east-1 --query "ReplicationGroups[].ReplicationGroupId"` | No ElastiCache Redis node billing |
 
 If the cluster is up when you expected it down, list worker nodes:
 
