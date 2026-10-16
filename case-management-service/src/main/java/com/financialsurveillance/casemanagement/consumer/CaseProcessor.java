@@ -17,12 +17,6 @@ public class CaseProcessor {
     private final CaseService caseService;
 
     @Transactional
-    public void processInTransaction(AlertPersistedEvent event) {
-        idempotencyService.markProcessed(event.getAlertId());
-        caseService.createCaseFromAlert(event);
-    }
-
-    @Transactional
     public void processBatchInTransaction(List<AlertPersistedEvent> events) {
         List<AlertPersistedEvent> fresh = idempotencyService.filterUnprocessed(events);
         if (fresh.isEmpty()) {

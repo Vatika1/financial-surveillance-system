@@ -52,47 +52,6 @@ public class CaseService {
 
         return cases.map(caseMapper::toCaseSummaryResponse);
     }
-    @Transactional
-    public void createCaseFromAlert(AlertPersistedEvent event){
-        log.info("Creating case for Alert alertId={} alertTypeId={} tradeId={} advisorId={}",
-                event.getAlertId(), event.getAlertTypeId(), event.getTradeId(), event.getAdvisorId());
-
-        if (caseRepository.existsByAlertId(event.getAlertId())) {
-            log.warn("Case already exists for alertId={}", event.getAlertId());
-            return;
-        }
-
-        Case newCase = Case.builder()
-                .id(UUID.randomUUID())
-                .alertId(event.getAlertId())
-                .createdAt(event.getCreatedAt())
-                .advisorId(event.getAdvisorId())
-                .status(CaseStatus.OPEN)
-                .updatedAt(ZonedDateTime.now())
-                .build();
-
-        Case savedCase = caseRepository.save(newCase);
-
-        CaseAction caseAction = CaseAction.builder()
-                .id(UUID.randomUUID())
-                .actionType(ActionType.CASE_CREATED)
-                .caseId(savedCase.getId())
-                .performedAt(ZonedDateTime.now())
-                .performedBy("system")
-                .build();
-
-        caseActionRepository.save(caseAction);
-
-        CaseCreatedEvent caseEvent = CaseCreatedEvent.builder()
-                .createdAt(savedCase.getCreatedAt())
-                .caseId(savedCase.getId())
-                .alertId(savedCase.getAlertId())
-                .advisorId(savedCase.getAdvisorId())
-                .status(savedCase.getStatus())
-                .build();
-
-        producer.publishCaseCreated(caseEvent);
-    }
 
     /**
      * Batch version of createCaseFromAlert. Caller has already removed duplicates.

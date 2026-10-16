@@ -22,14 +22,6 @@ public class IdempotencyService {
 
     private final ProcessedAlertRepository processedAlertRepository;
 
-    public void markProcessed(UUID alertId){
-        ProcessedAlert processedAlert = ProcessedAlert.builder()
-                .alertId(alertId)
-                .build();
-        processedAlertRepository.saveAndFlush(processedAlert);
-        log.debug("Marked processed: alertId={}", alertId);
-    }
-
     /**
      * Drops alerts already recorded in processed_alerts, and duplicates within the batch itself.
      * One query for the whole batch. Order is preserved.

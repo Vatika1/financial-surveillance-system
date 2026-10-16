@@ -113,31 +113,31 @@ public class CaseServiceTest {
                 .build();
     }
 
-    @Test
-    void createCaseFromAlert_shouldCreateCaseWhenAlertEventReceived(){
-        AlertPersistedEvent event = getAlertPersistedEvent();
+//    @Test
+//    void createCaseFromAlert_shouldCreateCaseWhenAlertEventReceived(){
+//        AlertPersistedEvent event = getAlertPersistedEvent();
+//
+//        when(caseRepository.existsByAlertId(event.getAlertId())).thenReturn(false);
+//        when(caseRepository.save(any(Case.class))).thenAnswer(i -> i.getArgument(0));
+//
+//        caseService.createCaseFromAlert(event);
+//
+//        verify(caseRepository).save(any(Case.class));
+//        verify(caseActionRepository).save(any(CaseAction.class));
+//        verify(producer).publishCaseCreated(any(CaseCreatedEvent.class));
+//    }
 
-        when(caseRepository.existsByAlertId(event.getAlertId())).thenReturn(false);
-        when(caseRepository.save(any(Case.class))).thenAnswer(i -> i.getArgument(0));
-
-        caseService.createCaseFromAlert(event);
-
-        verify(caseRepository).save(any(Case.class));
-        verify(caseActionRepository).save(any(CaseAction.class));
-        verify(producer).publishCaseCreated(any(CaseCreatedEvent.class));
-    }
-
-    @Test
-    void createCaseFromAlert_ShouldFailCaseAlreadyExists(){
-        AlertPersistedEvent event = getAlertPersistedEvent();
-        when(caseRepository.existsByAlertId(event.getAlertId())).thenReturn(true);
-
-        caseService.createCaseFromAlert(event);
-
-        verify(caseRepository, never()).save(any());
-        verify(producer, never()).publishCaseCreated(any(CaseCreatedEvent.class));
-
-    }
+//    @Test
+//    void createCaseFromAlert_ShouldFailCaseAlreadyExists(){
+//        AlertPersistedEvent event = getAlertPersistedEvent();
+//        when(caseRepository.existsByAlertId(event.getAlertId())).thenReturn(true);
+//
+//        caseService.createCaseFromAlert(event);
+//
+//        verify(caseRepository, never()).save(any());
+//        verify(producer, never()).publishCaseCreated(any(CaseCreatedEvent.class));
+//
+//    }
 
     @Test
     void transitionStatus_ShouldSuccessfullyTransitionStatus(){
