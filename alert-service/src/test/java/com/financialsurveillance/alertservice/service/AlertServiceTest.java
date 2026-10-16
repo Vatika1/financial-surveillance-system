@@ -76,18 +76,18 @@ public class AlertServiceTest {
                 .build();
     }
 
-    @Test
-    void processAlert_ShouldSuccessfullyProcessAlert(){
-        AlertCreatedEvent event = getAlertCreatedEvent();
-        AlertDTO dto = eventToDto(event);
-
-        Alert alert = dtoToEntity(dto);
-        when(alertMapper.toEntity(any())).thenReturn(alert);
-
-        alertService.processAlert(event);
-
-        verify(alertRepository).save(alert);
-        verify(alertPersistedEventProducer).publishAlert(any(), eq(event));
-    }
+//    @Test
+//    void processAlert_ShouldSuccessfullyProcessAlert(){
+//        AlertCreatedEvent event = getAlertCreatedEvent();
+//        AlertDTO dto = eventToDto(event);
+//
+//        Alert alert = dtoToEntity(dto);
+//        when(alertMapper.toEntity(any())).thenReturn(alert);
+//
+//        alertService.processAlert(event);
+//
+//        verify(alertRepository).save(alert);
+//        verify(alertPersistedEventProducer).publishAlert(any(), eq(event));
+//    }
 
 }

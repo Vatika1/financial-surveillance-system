@@ -74,44 +74,44 @@ public class AlertPersistedEventProducerTest {
                 .build();
     }
 
-    @Test
-    void publishAlert_ShouldSuccessfullyPublish(){
-        AlertCreatedEvent event = getAlertCreatedEvent();
-        AlertDTO dto = getAlertDTO();
-
-        RecordMetadata metadata = new RecordMetadata(
-                new TopicPartition("alerts.persisted", 0),  // topic, partition
-                0L, 0, 0L, 0, 0                            // offset + others
-        );
-
-        ProducerRecord<String, AlertPersistedEvent> producerRecord =
-                new ProducerRecord<>("alerts.persisted", event.getAdvisorId(), null);
-
-        SendResult<String, AlertPersistedEvent> sendResult =
-                new SendResult<>(producerRecord, metadata);
-        when(kafkaTemplate.send(any(ProducerRecord.class)))
-                .thenReturn(CompletableFuture.completedFuture(sendResult));
-
-        alertPersistedEventProducer.publishAlert(dto, event);
-
-        verify(kafkaTemplate).send(any(ProducerRecord.class));
-    }
-    @Test
-    void ShouldLogError_WhenKafkaPublishFails(){
-        AlertCreatedEvent event = getAlertCreatedEvent();
-        AlertDTO dto = getAlertDTO();
-        CompletableFuture<SendResult<String, AlertPersistedEvent>> failedFuture =
-                CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
-        when(kafkaTemplate.send(any(ProducerRecord.class)))
-                .thenReturn(failedFuture);
-
-        AlertPersistedPublishException ex = assertThrows(
-                AlertPersistedPublishException.class,
-                () -> alertPersistedEventProducer.publishAlert(dto, event)
-        );
-
-        // optional: assert the message or cause to confirm we hit the right catch block
-        assertThat(ex.getMessage()).contains("Kafka publish failed");
-       verify(kafkaTemplate).send(any(ProducerRecord.class));
-    }
+//    @Test
+//    void publishAlert_ShouldSuccessfullyPublish(){
+//        AlertCreatedEvent event = getAlertCreatedEvent();
+//        AlertDTO dto = getAlertDTO();
+//
+//        RecordMetadata metadata = new RecordMetadata(
+//                new TopicPartition("alerts.persisted", 0),  // topic, partition
+//                0L, 0, 0L, 0, 0                            // offset + others
+//        );
+//
+//        ProducerRecord<String, AlertPersistedEvent> producerRecord =
+//                new ProducerRecord<>("alerts.persisted", event.getAdvisorId(), null);
+//
+//        SendResult<String, AlertPersistedEvent> sendResult =
+//                new SendResult<>(producerRecord, metadata);
+//        when(kafkaTemplate.send(any(ProducerRecord.class)))
+//                .thenReturn(CompletableFuture.completedFuture(sendResult));
+//
+//        alertPersistedEventProducer.publishAlert(dto, event);
+//
+//        verify(kafkaTemplate).send(any(ProducerRecord.class));
+//    }
+//    @Test
+//    void ShouldLogError_WhenKafkaPublishFails(){
+//        AlertCreatedEvent event = getAlertCreatedEvent();
+//        AlertDTO dto = getAlertDTO();
+//        CompletableFuture<SendResult<String, AlertPersistedEvent>> failedFuture =
+//                CompletableFuture.failedFuture(new RuntimeException("Kafka down"));
+//        when(kafkaTemplate.send(any(ProducerRecord.class)))
+//                .thenReturn(failedFuture);
+//
+//        AlertPersistedPublishException ex = assertThrows(
+//                AlertPersistedPublishException.class,
+//                () -> alertPersistedEventProducer.publishAlert(dto, event)
+//        );
+//
+//        // optional: assert the message or cause to confirm we hit the right catch block
+//        assertThat(ex.getMessage()).contains("Kafka publish failed");
+//       verify(kafkaTemplate).send(any(ProducerRecord.class));
+//    }
 }

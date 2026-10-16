@@ -18,15 +18,6 @@ public class IdempotencyService {
 
     private final ProcessedAlertRepository processedAlertRepository;
 
-    //unused method
-    public void markProcessed(UUID alertId){
-        ProcessedAlert processedAlert = ProcessedAlert.builder()
-                .alertId(alertId)
-                .build();
-        processedAlertRepository.save(processedAlert);
-        log.debug("Marked processed: alertId={}", alertId);
-    }
-
     public List<AlertCreatedEvent> filterUnprocessed(List<AlertCreatedEvent> events){
         Map<UUID, AlertCreatedEvent> byAlertId = new LinkedHashMap<>();
         for (AlertCreatedEvent event : events) {

@@ -18,12 +18,6 @@ public class AlertProcessor {
     private final AlertService alertService;
 
     @Transactional
-    public void processInTransaction(AlertCreatedEvent event) {
-        idempotencyService.markProcessed(event.getAlertId());
-        alertService.processAlert(event);
-    }
-
-    @Transactional
     public void processBatchInTransaction(List<AlertCreatedEvent> events){
         List<AlertCreatedEvent> fresh = idempotencyService.filterUnprocessed(events);
         if (fresh.isEmpty()) {

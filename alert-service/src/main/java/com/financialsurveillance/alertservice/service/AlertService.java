@@ -23,8 +23,6 @@ import java.util.List;
 @Service
 public class AlertService {
 
-    private final AlertMapper alertMapper;
-    private final AlertRepository alertRepository;
     private final AlertPersistedEventProducer alertPersistedEventProducer;
     private final EntityManager entityManager;
 
@@ -74,27 +72,5 @@ public class AlertService {
         log.info("Persisted alerts {} ", persistedEvents.size());
             alertPersistedEventProducer.publishAll(persistedEvents);
     }
-
-    public void processAlert(AlertCreatedEvent event){
-        log.info("Processing Alert alertId={} alertTypeId={} tradeId={} advisorId={}",
-                event.getAlertId(), event.getAlertTypeId(), event.getTradeId(), event.getAdvisorId());
-
-        AlertDTO dto = AlertDTO.builder()
-                .severity(event.getSeverity())
-                .alertTypeId(event.getAlertTypeId())
-                .alertId(event.getAlertId())
-                .tradeId(event.getTradeId())
-                .status(event.getStatus())
-                .advisorId(event.getAdvisorId())
-                .createdAt(event.getCreatedAt())
-                .violationDetails(event.getViolationDetails())
-                .ruleId(event.getRuleId())
-                .ruleName(event.getRuleName())
-                .build();
-        Alert alert = alertMapper.toEntity(dto);
-        alertRepository.save(alert);
-        alertPersistedEventProducer.publishAlert(dto, event);
-    }
-
 
 }
