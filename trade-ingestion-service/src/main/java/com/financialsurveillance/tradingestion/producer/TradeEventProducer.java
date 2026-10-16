@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -98,5 +99,15 @@ public class TradeEventProducer {
             throw new TradePublishException(
                     "Interrupted while publishing tradeId=" + tradeId, e);
         }
+    }
+
+    public CompletableFuture<SendResult<String, TradeCreatedEvent>> publishTradeCreatedAsync(
+            TradeCreatedEvent event, String correlationId) {
+        ProducerRecord<String, TradeCreatedEvent> record =
+                new ProducerRecord<>(topics.tradesRaw(), event.getAccountId(), event);   // same key/topic you use now
+        if (correlationId != null) {
+            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
+        }
+        return kafkaTemplate.send(record);   // no .get()
     }
 }
