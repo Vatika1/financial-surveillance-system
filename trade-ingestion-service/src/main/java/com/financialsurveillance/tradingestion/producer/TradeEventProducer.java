@@ -56,50 +56,7 @@ public class TradeEventProducer {
      * @throws TradePublishException if the broker rejects the message,
      *         the send times out, or the thread is interrupted.
      */
-    public void publishTradeCreated(TradeCreatedEvent event, String correlationId) {
-        String key = event.getAdvisorId();
-        String tradeId = event.getTradeId();
 
-        ProducerRecord<String, TradeCreatedEvent> record =
-                new ProducerRecord<>(topics.tradesRaw(), key, event);
-
-        if (correlationId != null) {
-            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
-        }
-
-        try {
-            SendResult<String, TradeCreatedEvent> result = kafkaTemplate
-                    .send(record)
-                    .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
-
-            log.info("Event published tradeId={} advisorId={} topic={} partition={} offset={}",
-                    tradeId,
-                    key,
-                    result.getRecordMetadata().topic(),
-                    result.getRecordMetadata().partition(),
-                    result.getRecordMetadata().offset());
-
-        } catch (TimeoutException e) {
-            log.error("Kafka send timed out tradeId={} advisorId={} timeoutMs={}",
-                    tradeId, key, SEND_TIMEOUT.toMillis(), e);
-            throw new TradePublishException(
-                    "Kafka publish timed out for tradeId=" + tradeId, e);
-
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            log.error("Kafka send failed tradeId={} advisorId={} cause={}",
-                    tradeId, key, cause.getMessage(), cause);
-            throw new TradePublishException(
-                    "Kafka publish failed for tradeId=" + tradeId, cause);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Interrupted while publishing tradeId={} advisorId={}",
-                    tradeId, key, e);
-            throw new TradePublishException(
-                    "Interrupted while publishing tradeId=" + tradeId, e);
-        }
-    }
 
     public CompletableFuture<SendResult<String, TradeCreatedEvent>> publishTradeCreatedAsync(
             TradeCreatedEvent event, String correlationId) {

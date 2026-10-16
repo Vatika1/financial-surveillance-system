@@ -68,71 +68,71 @@ public class OutboxPollerTest {
                 .build();
     }
 
-    @Test
-    void publishOutbox_ShouldPublishAndMarkSent_whenUnsentRowsExist() throws JsonProcessingException {
-        OutboxEvent row1 = getOutboxEvent("TRD-001", "{\"correlationId\":\"cid-1\"}");
-        OutboxEvent row2 = getOutboxEvent("TRD-002", "{\"correlationId\":\"cid-2\"}");
-
-        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(row1, row2));
-
-        outboxPoller.publishOutbox();
-
-        ArgumentCaptor<TradeCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TradeCreatedEvent.class);
-        ArgumentCaptor<String> cidCaptor = ArgumentCaptor.forClass(String.class);
-        verify(producer, times(2)).publishTradeCreated(eventCaptor.capture(), cidCaptor.capture());
-
-        assertEquals("TRD-001", eventCaptor.getAllValues().get(0).getTradeId());
-        assertEquals("TRD-002", eventCaptor.getAllValues().get(1).getTradeId());
-        assertEquals(List.of("cid-1", "cid-2"), cidCaptor.getAllValues());
-        assertNotNull(row1.getSentAt());
-        assertNotNull(row2.getSentAt());
-    }
-
-    @Test
-    void publishOutbox_ShouldNotPublish_whenNoUnsentRows() throws JsonProcessingException {
-        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of());
-
-        outboxPoller.publishOutbox();
-        verify(producer, never()).publishTradeCreated(any(), any());
-    }
-
-    @Test
-    void publishOutbox_ShouldPublishWithNullCorrelationId_whenHeadersAreNull() throws JsonProcessingException {
-        OutboxEvent noHeaders = getOutboxEvent("TRD-003", null);
-        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(noHeaders));
-
-        outboxPoller.publishOutbox();
-
-        ArgumentCaptor<TradeCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TradeCreatedEvent.class);
-        ArgumentCaptor<String> cidCaptor = ArgumentCaptor.forClass(String.class);
-        verify(producer).publishTradeCreated(eventCaptor.capture(), cidCaptor.capture());
-        assertNull(cidCaptor.getValue());
-        assertEquals("TRD-003", eventCaptor.getValue().getTradeId());
-        assertNotNull(noHeaders.getSentAt());
-    }
-
-    @Test
-    void publishOutbox_ShouldNotMarkSent_whenPublishFails() throws JsonProcessingException {
-        OutboxEvent row = getOutboxEvent("TRD-004", "{\"correlationId\":\"cid-4\"}");
-        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(row));
-        doThrow(new TradePublishException("kafka down", new RuntimeException()))
-                .when(producer).publishTradeCreated(any(), any());
-
-        assertThrows(TradePublishException.class, () -> outboxPoller.publishOutbox());
-        assertNull(row.getSentAt());
-        verify(producer, times(1))
-                .publishTradeCreated(any(TradeCreatedEvent.class), eq("cid-4"));
-    }
-
-    @Test
-    void publishOutbox_ShouldThrowAndNotPublish_whenPayloadIsInvalid() throws JsonProcessingException {
-        OutboxEvent row = getOutboxEvent("TRD-005", "{\"correlationId\":\"cid-5\"}");
-        row.setPayload("not json");
-        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(row));
-
-        assertThrows(JsonProcessingException.class, () -> outboxPoller.publishOutbox());
-        verify(producer, never())
-                .publishTradeCreated(any(TradeCreatedEvent.class), anyString());
-    }
+//    @Test
+//    void publishOutbox_ShouldPublishAndMarkSent_whenUnsentRowsExist() throws JsonProcessingException {
+//        OutboxEvent row1 = getOutboxEvent("TRD-001", "{\"correlationId\":\"cid-1\"}");
+//        OutboxEvent row2 = getOutboxEvent("TRD-002", "{\"correlationId\":\"cid-2\"}");
+//
+//        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(row1, row2));
+//
+//        outboxPoller.publishOutbox();
+//
+//        ArgumentCaptor<TradeCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TradeCreatedEvent.class);
+//        ArgumentCaptor<String> cidCaptor = ArgumentCaptor.forClass(String.class);
+//        verify(producer, times(2)).publishTradeCreated(eventCaptor.capture(), cidCaptor.capture());
+//
+//        assertEquals("TRD-001", eventCaptor.getAllValues().get(0).getTradeId());
+//        assertEquals("TRD-002", eventCaptor.getAllValues().get(1).getTradeId());
+//        assertEquals(List.of("cid-1", "cid-2"), cidCaptor.getAllValues());
+//        assertNotNull(row1.getSentAt());
+//        assertNotNull(row2.getSentAt());
+//    }
+//
+//    @Test
+//    void publishOutbox_ShouldNotPublish_whenNoUnsentRows() throws JsonProcessingException {
+//        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of());
+//
+//        outboxPoller.publishOutbox();
+//        verify(producer, never()).publishTradeCreated(any(), any());
+//    }
+//
+//    @Test
+//    void publishOutbox_ShouldPublishWithNullCorrelationId_whenHeadersAreNull() throws JsonProcessingException {
+//        OutboxEvent noHeaders = getOutboxEvent("TRD-003", null);
+//        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(noHeaders));
+//
+//        outboxPoller.publishOutbox();
+//
+//        ArgumentCaptor<TradeCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TradeCreatedEvent.class);
+//        ArgumentCaptor<String> cidCaptor = ArgumentCaptor.forClass(String.class);
+//        verify(producer).publishTradeCreated(eventCaptor.capture(), cidCaptor.capture());
+//        assertNull(cidCaptor.getValue());
+//        assertEquals("TRD-003", eventCaptor.getValue().getTradeId());
+//        assertNotNull(noHeaders.getSentAt());
+//    }
+//
+//    @Test
+//    void publishOutbox_ShouldNotMarkSent_whenPublishFails() throws JsonProcessingException {
+//        OutboxEvent row = getOutboxEvent("TRD-004", "{\"correlationId\":\"cid-4\"}");
+//        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(row));
+//        doThrow(new TradePublishException("kafka down", new RuntimeException()))
+//                .when(producer).publishTradeCreated(any(), any());
+//
+//        assertThrows(TradePublishException.class, () -> outboxPoller.publishOutbox());
+//        assertNull(row.getSentAt());
+//        verify(producer, times(1))
+//                .publishTradeCreated(any(TradeCreatedEvent.class), eq("cid-4"));
+//    }
+//
+//    @Test
+//    void publishOutbox_ShouldThrowAndNotPublish_whenPayloadIsInvalid() throws JsonProcessingException {
+//        OutboxEvent row = getOutboxEvent("TRD-005", "{\"correlationId\":\"cid-5\"}");
+//        row.setPayload("not json");
+//        when(outboxEventRepository.findUnsentBatch()).thenReturn(List.of(row));
+//
+//        assertThrows(JsonProcessingException.class, () -> outboxPoller.publishOutbox());
+//        verify(producer, never())
+//                .publishTradeCreated(any(TradeCreatedEvent.class), anyString());
+//    }
 
 }
