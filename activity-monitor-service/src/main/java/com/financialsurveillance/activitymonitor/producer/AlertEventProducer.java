@@ -95,65 +95,6 @@ public class AlertEventProducer {
                 .build();
     }
 
-    public void publishAlert(RuleViolationDTO violation, TradeCreatedEvent event){
-
-        String key = event.getAdvisorId();
-
-        AlertCreatedEvent alertCreatedEvent = AlertCreatedEvent.builder()
-                .alertId(UUID.randomUUID())
-                .alertTypeId(generateAlertTypeId(violation.getRuleId()))
-                .createdAt(event.getCreatedAt())
-                .ruleId(violation.getRuleId())
-                .advisorId(violation.getAdvisorId())
-                .tradeId(violation.getTradeId())
-                .severity(violation.getSeverity())
-                .ruleName(violation.getRuleName())
-                .violationDetails(violation.getViolationDetails())
-                .status(AlertStatus.OPEN)
-                .build();
-
-        ProducerRecord<String, AlertCreatedEvent> record =
-                new ProducerRecord<>(topic, key, alertCreatedEvent);
-        String correlationId = MDC.get("correlationId");
-        if (correlationId != null) {
-            record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
-        }
-
-        try {
-            SendResult<String, AlertCreatedEvent> result = kafkaTemplate
-                    .send(record)
-                    .get(SEND_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
-
-            log.info("Published AlertCreatedEvent. tradeId={} alertId={} topic={} partition={} offset={}",
-                    alertCreatedEvent.getTradeId(),
-                    alertCreatedEvent.getAlertId(),
-                    result.getRecordMetadata().topic(),
-                    result.getRecordMetadata().partition(),
-                    result.getRecordMetadata().offset());
-
-        } catch (TimeoutException e) {
-            log.error("Kafka send timed out tradeId={} alertId={} timeoutMs={}",
-                    alertCreatedEvent.getTradeId(),
-                    alertCreatedEvent.getAlertId(),
-                    SEND_TIMEOUT.toMillis(), e);
-            throw new AlertPublishException(
-                    "Kafka publish timed out for alertId=" + alertCreatedEvent.getAlertId(), e);
-
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            log.error("Kafka send failed tradeId={} alertId={} cause={}",
-                    alertCreatedEvent.getTradeId(),
-                    alertCreatedEvent.getAlertId(),
-                    cause.getMessage(), cause);
-            throw new AlertPublishException(
-                    "Kafka publish failed for alertId=" + alertCreatedEvent.getAlertId(), cause);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new AlertPublishException(
-                    "Interrupted while publishing alertId=" + alertCreatedEvent.getAlertId(), e);
-        }
-}
     private String generateAlertTypeId(String ruleId){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String code = RULE_CODES.get(ruleId);

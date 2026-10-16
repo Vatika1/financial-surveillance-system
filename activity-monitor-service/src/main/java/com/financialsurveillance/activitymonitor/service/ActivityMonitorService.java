@@ -71,31 +71,4 @@ public class ActivityMonitorService {
         alertEventProducer.publishAll(alerts);
     }
 
-    @Transactional
-    public void processTrade(TradeCreatedEvent event) {
-        tradeWindowStore.addTrade(event.getAdvisorId(), event);
-
-        // Compensating action: if the transaction rolls back, undo the in-memory write.
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCompletion(int status) {
-                        if (status == STATUS_ROLLED_BACK) {
-                            tradeWindowStore.removeTrade(event.getAdvisorId(), event);
-                        }
-                    }
-                });
-        List<TradeCreatedEvent> recentTrades =
-                tradeWindowStore.getRecentTrades(event.getAdvisorId(), WINDOW);
-
-        RuleContext ruleContext = new RuleContext(recentTrades, RESTRICTED_SYMBOLS, Optional.empty());
-        List<RuleViolationDTO> violationList = surveillanceEngine.evaluate(event, ruleContext);
-
-        for (RuleViolationDTO violation : violationList) {
-            RuleViolation violationObj = ruleViolationMapper.toEntity(violation);
-            ruleViolationRepository.save(violationObj);
-            alertEventProducer.publishAlert(violation, event);
-        }
-    }
-
 }

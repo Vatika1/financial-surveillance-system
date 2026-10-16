@@ -46,12 +46,4 @@ public class IdempotencyService {
         processedEventRepository.saveAll(rows);
         log.debug("Marked processed: {} trades", rows.size());
     }
-
-    public void markProcessed(String tradeId){
-        ProcessedEvent event = ProcessedEvent.builder()
-                .tradeId(tradeId)
-                .build();
-        processedEventRepository.save(event);
-        log.debug("Marked processed: tradeId={}", tradeId);
-    }
 }

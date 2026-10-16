@@ -26,10 +26,4 @@ public class TradeProcessor {
         idempotencyService.markProcessed(fresh.stream().map(TradeCreatedEvent::getTradeId).toList());
         activityMonitorService.processTrades(fresh);
     }
-
-    @Transactional
-    public void processInTransaction(TradeCreatedEvent event) {
-        idempotencyService.markProcessed(event.getTradeId());
-        activityMonitorService.processTrade(event);
-    }
 }
