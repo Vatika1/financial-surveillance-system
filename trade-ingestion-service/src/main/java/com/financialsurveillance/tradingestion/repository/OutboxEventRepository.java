@@ -20,4 +20,6 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, UUID> 
     @Transactional
     @Query(value = "DELETE FROM trade_ingestion.outbox WHERE sent_at < :cutoff", nativeQuery = true)
     int deleteSentBefore(@Param("cutoff") ZonedDateTime cutoff);
+
+    long countBySentAtIsNull();
 }
