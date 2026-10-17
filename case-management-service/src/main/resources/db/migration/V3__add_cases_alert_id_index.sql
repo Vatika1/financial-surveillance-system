@@ -1,0 +1,1 @@
+CREATE INDEX idx_cases_alert_id ON case_management.cases(alert_id);
