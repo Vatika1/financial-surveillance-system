@@ -27,6 +27,11 @@ kubectl apply -f (Join-Path $setupScriptsPath "aws-auth.yaml")
 kubectl apply -f (Join-Path $setupScriptsPath "github-actions-role.yaml")
 kubectl apply -f (Join-Path $setupScriptsPath "github-actions-binding.yaml")
 
+# ===== STEP 3b: metrics-server (for kubectl top / HPA) =====
+Write-Host "`n[3b/5] Installing metrics-server..." -ForegroundColor Cyan
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+if ($LASTEXITCODE -ne 0) { Write-Host "metrics-server install failed" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 4a: Recreate K8s Secret 'db-secret' from AWS Secrets Manager =====
 Write-Host "`n[4a/5] Recreating K8s Secret 'db-secret' from AWS Secrets Manager..." -ForegroundColor Cyan
 
