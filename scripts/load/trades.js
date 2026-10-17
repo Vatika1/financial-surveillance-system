@@ -27,7 +27,7 @@ const SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META'];
 
 export default function () {
     const now = Date.now();
-    const advisor = `ADV-${(__VU % 50).toString().padStart(3, '0')}`;
+    const advisor = `ADV-${Math.floor(Math.random() * 1000).toString().padStart(4, '0')}`;
 
     const payload = JSON.stringify({
         tradeId: `TRD-K6-${__VU}-${__ITER}-${now}`,
