@@ -39,6 +39,8 @@ resource "aws_db_instance" "main" {
   manage_master_user_password = true
 
   allocated_storage     = 20
+  storage_type = "gp3"
+  apply_immediately = true
   max_allocated_storage = 50
   storage_encrypted     = true
 
