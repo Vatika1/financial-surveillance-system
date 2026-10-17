@@ -4,20 +4,20 @@
   "metadata": {
     "name": "adgbp2w",
     "namespace": "default",
-    "uid": "a169d167-ea9a-4098-ab7b-3474e297d0b0",
-    "resourceVersion": "1792177276400014",
+    "uid": "7c9fb86f-011f-4763-8300-7eaa29b78d6a",
+    "resourceVersion": "1792261547983999",
     "generation": 1,
-    "creationTimestamp": "2026-10-16T19:01:16Z",
+    "creationTimestamp": "2026-10-17T18:25:47Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "3486003929681920"
+      "grafana.app/deprecatedInternalID": "3839464588963840"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "sidecarProvider",
-      "grafana.app/sourceChecksum": "5bbf8bb734062da88789bdaa4ce8b0c9",
+      "grafana.app/sourceChecksum": "99becc76cca5879fc8d7f31425b4e41a",
       "grafana.app/sourcePath": "/tmp/dashboards/trade-surveillance-dashboard.json",
-      "grafana.app/sourceTimestamp": "1792177276000",
+      "grafana.app/sourceTimestamp": "1792261547000",
       "grafana.app/folder": ""
     }
   },
@@ -372,7 +372,7 @@
                       }
                     ]
                   },
-                  "unit": "reqps"
+                  "unit": "short"
                 },
                 "overrides": []
               },
@@ -487,7 +487,7 @@
                       }
                     ]
                   },
-                  "unit": "reqps"
+                  "unit": "short"
                 },
                 "overrides": []
               },
@@ -529,7 +529,7 @@
                       "spec": {
                         "editorMode": "code",
                         "expr": "hikaricp_connections_pending",
-                        "legendFormat": "{{pod}}",
+                        "legendFormat": "{{service}}",
                         "range": true
                       },
                       "version": "v0"
@@ -1313,7 +1313,7 @@
                         },
                         "expression": "",
                         "id": "",
-                        "label": "",
+                        "label": "Broker ${PROP('Dim.Broker ID')}",
                         "logGroups": [],
                         "matchExact": false,
                         "metricEditorMode": 0,
@@ -1439,7 +1439,8 @@
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum by (service) (rate(http_server_requests_seconds_count{status=~\"5..\", uri!~\"/actuator.*\"}[1m])) or on() vector(0)",
-                        "legendFormat": "__auto",
+                        "interval": "",
+                        "legendFormat": "{{service}}",
                         "range": true
                       },
                       "version": "v0"
@@ -2418,7 +2419,7 @@
                         "editorMode": "code",
                         "expr": "hikaricp_connections_active",
                         "interval": "",
-                        "legendFormat": "{{pod}}",
+                        "legendFormat": "{{service}}",
                         "range": true
                       },
                       "version": "v0"
