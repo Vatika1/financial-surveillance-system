@@ -7,6 +7,7 @@ import com.financialsurveillance.tradingestion.domain.OutboxEvent;
 import com.financialsurveillance.tradingestion.exception.TradePublishException;
 import com.financialsurveillance.tradingestion.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class OutboxPoller {
@@ -55,5 +57,11 @@ public class OutboxPoller {
 
         ZonedDateTime now = ZonedDateTime.now();
         unsentRows.forEach(row -> row.setSentAt(now));
+    }
+
+    @Scheduled(fixedDelay = 300_000)
+    public void cleanupSentRows() {
+        int deleted = outboxEventRepository.deleteSentBefore(ZonedDateTime.now().minusHours(1));
+        if (deleted > 0) log.info("Outbox cleanup deleted {} sent rows", deleted);
     }
 }
