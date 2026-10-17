@@ -77,4 +77,12 @@ kubectl port-forward pod/rds-proxy 5432:5432      # then DBeaver → localhost:5
 kubectl delete pod rds-proxy                      # when done
 ```
 
+## Pod resource usage (needs metrics-server — installed by start-dev.ps1)
+```powershell
+kubectl top pods              # CPU/memory per pod
+kubectl top pods -A           # all namespaces
+kubectl top nodes             # CPU/memory per node
+```
+READY column in `kubectl get pods`: ready containers / total containers in the pod (e.g. Grafana 3/3 = Grafana + 2 sidecars).
+
 Get `<rds-host>` from the RDS command in [aws.md](aws.md). Stop the local Compose Postgres first — it also binds 5432.
