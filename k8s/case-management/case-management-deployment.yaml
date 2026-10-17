@@ -54,11 +54,11 @@ spec:
               value: "SSL"
           resources:
             requests:
-              memory: "512Mi"
+              memory: "768Mi"
               cpu: "250m"
             limits:
-              memory: "1Gi"
-              cpu: "500m"
+              memory: "1280Mi"
+              cpu: "750m"
           startupProbe:
             httpGet:
               path: /actuator/health/liveness
