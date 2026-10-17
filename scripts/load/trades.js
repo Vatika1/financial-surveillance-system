@@ -6,12 +6,15 @@ const BASE_URL = __ENV.BASE_URL;
 export const options = {
     scenarios: {
         trades: {
-            executor: 'constant-arrival-rate',
-            rate: __ENV.RATE ? parseInt(__ENV.RATE) : 200,
+            executor: 'ramping-arrival-rate',
+            startRate: 20,
             timeUnit: '1s',
-            duration: __ENV.DURATION || '15m',
             preAllocatedVUs: 50,
             maxVUs: 400,
+            stages: [
+                { target: __ENV.RATE ? parseInt(__ENV.RATE) : 200, duration: '2m' },
+                { target: __ENV.RATE ? parseInt(__ENV.RATE) : 200, duration: __ENV.DURATION || '13m' },
+            ],
         },
     },
     thresholds: {
