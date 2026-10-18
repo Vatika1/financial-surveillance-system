@@ -50,6 +50,13 @@ spec:
                   key: brokers
             - name: SPRING_KAFKA_SECURITY_PROTOCOL
               value: "SSL"
+            - name: SPRING_DATA_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config
+                  key: host
+            - name: SPRING_DATA_REDIS_SSL_ENABLED
+              value: "true"
           resources:
             requests:
               memory: "768Mi"

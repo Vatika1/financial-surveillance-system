@@ -96,6 +96,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8081:8081"
     environment:
@@ -106,6 +108,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_TOPICS_REPLICATION_FACTOR: "1"
       KAFKA_TOPICS_MIN_INSYNC_REPLICAS: "1"
+      SPRING_DATA_REDIS_HOST: redis
     networks:
       - surveillance-network
 
