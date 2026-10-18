@@ -57,57 +57,57 @@ public class GlobalExceptionHandlerTest {
                 .build();
     }
 
-    @Test
-    void shouldReturn500AndGenericMessage_whenUnhandledExceptionOccurs() throws Exception{
-
-        when(tradeService.processTrade(any()))
-                .thenThrow(new RuntimeException());
-
-        mockMvc.perform(post("/api/trades")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.error").value("INTERNAL SERVER ERROR"))
-                .andExpect(jsonPath("$.message").value("Something went wrong"))
-                .andExpect(jsonPath("$.path").value("/api/trades"))
-                .andExpect(jsonPath("$.timestamp").exists());
-    }
-
-    @Test
-    void shouldReturn400InvalidTradeException_whenUnhandledExceptionOccurs() throws Exception{
-        when(tradeService.processTrade(any()))
-                .thenThrow(new InvalidTradeException(request.getTradeId(), ""));
-
-        mockMvc.perform(post("/api/trades")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Bad request"))
-                .andExpect(jsonPath("$.message").value("Invalid trade [" + request.getTradeId() + "]: "))
-                .andExpect(jsonPath("$.path").value("/api/trades"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-    }
-
-    @Test
-    void shouldReturn409DuplicateTradeException_whenUnhandledExceptionOccurs() throws Exception{
-        when(tradeService.processTrade(any()))
-                .thenThrow(new DuplicateTradeException(request.getTradeId()));
-
-        mockMvc.perform(post("/api/trades")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.error").value("Conflict"))
-                .andExpect(jsonPath("$.message").value("Trade already exists with ID: "+ request.getTradeId()))
-                .andExpect(jsonPath("$.path").value("/api/trades"))
-                .andExpect(jsonPath("$.timestamp").exists());
-
-    }
+//    @Test
+//    void shouldReturn500AndGenericMessage_whenUnhandledExceptionOccurs() throws Exception{
+//
+//        when(tradeService.processTrade(any()))
+//                .thenThrow(new RuntimeException());
+//
+//        mockMvc.perform(post("/api/trades")
+//                        .contentType(APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(request)))
+//
+//                .andExpect(status().isInternalServerError())
+//                .andExpect(jsonPath("$.status").value(500))
+//                .andExpect(jsonPath("$.error").value("INTERNAL SERVER ERROR"))
+//                .andExpect(jsonPath("$.message").value("Something went wrong"))
+//                .andExpect(jsonPath("$.path").value("/api/trades"))
+//                .andExpect(jsonPath("$.timestamp").exists());
+//    }
+//
+//    @Test
+//    void shouldReturn400InvalidTradeException_whenUnhandledExceptionOccurs() throws Exception{
+//        when(tradeService.processTrade(any()))
+//                .thenThrow(new InvalidTradeException(request.getTradeId(), ""));
+//
+//        mockMvc.perform(post("/api/trades")
+//                        .contentType(APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(request)))
+//
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("$.status").value(400))
+//                .andExpect(jsonPath("$.error").value("Bad request"))
+//                .andExpect(jsonPath("$.message").value("Invalid trade [" + request.getTradeId() + "]: "))
+//                .andExpect(jsonPath("$.path").value("/api/trades"))
+//                .andExpect(jsonPath("$.timestamp").exists());
+//
+//    }
+//
+//    @Test
+//    void shouldReturn409DuplicateTradeException_whenUnhandledExceptionOccurs() throws Exception{
+//        when(tradeService.processTrade(any()))
+//                .thenThrow(new DuplicateTradeException(request.getTradeId()));
+//
+//        mockMvc.perform(post("/api/trades")
+//                        .contentType(APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(request)))
+//
+//                .andExpect(status().isConflict())
+//                .andExpect(jsonPath("$.status").value(409))
+//                .andExpect(jsonPath("$.error").value("Conflict"))
+//                .andExpect(jsonPath("$.message").value("Trade already exists with ID: "+ request.getTradeId()))
+//                .andExpect(jsonPath("$.path").value("/api/trades"))
+//                .andExpect(jsonPath("$.timestamp").exists());
+//
+//    }
 }

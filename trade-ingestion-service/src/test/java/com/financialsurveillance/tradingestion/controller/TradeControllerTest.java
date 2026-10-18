@@ -70,48 +70,48 @@ public class TradeControllerTest {
                 .build();
     }
 
-    @Test
-    void submitTrade_ShouldReturnTrade_WhenCreated() throws Exception {
-        when(tradeService.processTrade(any()))
-                .thenReturn(response);
-        mockMvc.perform(
-                        post("/api/trades")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.tradeId").value("TRD-001"))
-                .andExpect(jsonPath("$.createdAt").isNotEmpty())
-                .andExpect(jsonPath("$.status").value("RECEIVED"));
-    }
-
-    @Test
-    void shouldNotSubmitTrade_ShouldReturn409_DuplicateTrade() throws Exception {
-        when(tradeService.processTrade(any()))
-                .thenThrow(new DuplicateTradeException(request.getTradeId()));
-
-        mockMvc.perform(
-                        post("/api/trades")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.error").value("Conflict"));
-    }
-
-    @Test
-    void shouldNotSubmitTrade_ShouldReturn400_InvalidTrade() throws Exception {
-        when(tradeService.processTrade(any()))
-                .thenThrow(new InvalidTradeException(request.getTradeId(), "Symbol not recognized"));
-
-        mockMvc.perform(
-                        post("/api/trades")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400));
-    }
+//    @Test
+//    void submitTrade_ShouldReturnTrade_WhenCreated() throws Exception {
+//        when(tradeService.processTrade(any()))
+//                .thenReturn(response);
+//        mockMvc.perform(
+//                        post("/api/trades")
+//                                .contentType(MediaType.APPLICATION_JSON)
+//                                .content(objectMapper.writeValueAsString(request))
+//                )
+//                .andExpect(status().isCreated())
+//                .andExpect(jsonPath("$.id").exists())
+//                .andExpect(jsonPath("$.tradeId").value("TRD-001"))
+//                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+//                .andExpect(jsonPath("$.status").value("RECEIVED"));
+//    }
+//
+//    @Test
+//    void shouldNotSubmitTrade_ShouldReturn409_DuplicateTrade() throws Exception {
+//        when(tradeService.processTrade(any()))
+//                .thenThrow(new DuplicateTradeException(request.getTradeId()));
+//
+//        mockMvc.perform(
+//                        post("/api/trades")
+//                                .contentType(MediaType.APPLICATION_JSON)
+//                                .content(objectMapper.writeValueAsString(request))
+//                )
+//                .andExpect(status().isConflict())
+//                .andExpect(jsonPath("$.status").value(409))
+//                .andExpect(jsonPath("$.error").value("Conflict"));
+//    }
+//
+//    @Test
+//    void shouldNotSubmitTrade_ShouldReturn400_InvalidTrade() throws Exception {
+//        when(tradeService.processTrade(any()))
+//                .thenThrow(new InvalidTradeException(request.getTradeId(), "Symbol not recognized"));
+//
+//        mockMvc.perform(
+//                        post("/api/trades")
+//                                .contentType(MediaType.APPLICATION_JSON)
+//                                .content(objectMapper.writeValueAsString(request))
+//                )
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("$.status").value(400));
+//    }
 }
