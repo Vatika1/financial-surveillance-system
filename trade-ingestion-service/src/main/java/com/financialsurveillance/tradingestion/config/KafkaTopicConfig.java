@@ -48,7 +48,7 @@ public class KafkaTopicConfig {
         // Activity-monitor is the writer; trade-ingestion declares it so all
         // trades.raw.* topics are owned in one place.
         return TopicBuilder.name(topics.tradesRawDlt())
-                .partitions(PARTITIONS)
+                .partitions(TRADES_RAW_PARTITIONS)
                 .replicas(replicationFactor)
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
