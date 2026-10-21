@@ -6,6 +6,7 @@ import com.financialsurveillance.events.TradeCreatedEvent;
 import com.financialsurveillance.tradingestion.domain.OutboxEvent;
 import com.financialsurveillance.tradingestion.exception.TradePublishException;
 import com.financialsurveillance.tradingestion.repository.OutboxEventRepository;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,14 +30,10 @@ public class OutboxPoller {
     private final ObjectMapper objectMapper;
     private final TradeEventProducer producer;
 
-    @Scheduled(fixedDelay = 100)
-    @Transactional
-    public void publishOutbox() throws JsonProcessingException {
-        List<OutboxEvent> unsentRows = outboxEventRepository.findUnsentBatch();
-        if (unsentRows.isEmpty()) {
-            return;
-        }
 
+    // Traced only when there is something to publish; empty polls create no trace.
+    @WithSpan("outbox.publishBatch")
+    public void publishBatch(List<OutboxEvent> unsentRows) throws JsonProcessingException {
         List<CompletableFuture<?>> futures = new ArrayList<>(unsentRows.size());
         for (OutboxEvent row : unsentRows) {
             TradeCreatedEvent event = objectMapper.readValue(row.getPayload(), TradeCreatedEvent.class);
@@ -57,6 +54,16 @@ public class OutboxPoller {
 
         ZonedDateTime now = ZonedDateTime.now();
         unsentRows.forEach(row -> row.setSentAt(now));
+    }
+
+    @Scheduled(fixedDelay = 100)
+    @Transactional
+    public void publishOutbox() throws JsonProcessingException {
+        List<OutboxEvent> unsentRows = outboxEventRepository.findUnsentBatch();
+        if (unsentRows.isEmpty()) {
+            return;
+        }
+        publishBatch(unsentRows);
     }
 
     @Scheduled(fixedDelay = 300_000)
