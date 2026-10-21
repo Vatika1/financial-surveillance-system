@@ -4,8 +4,10 @@ import com.financialsurveillance.events.AlertCreatedEvent;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +16,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -23,9 +26,11 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.kafka.core.MicrometerConsumerListener;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class KafkaConsumerConfig {
@@ -100,6 +105,15 @@ public class KafkaConsumerConfig {
                         )
                 );
 
+        // Log before sending to DLT, otherwise the failure is silent
+        ConsumerRecordRecoverer loggingRecoverer = (record, ex) -> {
+            Header h = record.headers().lastHeader("correlationId");
+            String correlationId = h == null ? null : new String(h.value(), StandardCharsets.UTF_8);
+            log.error("Sending to DLT topic={} partition={} offset={} key={} correlationId={}",
+                    record.topic(), record.partition(), record.offset(), record.key(), correlationId, ex);
+            recoverer.accept(record, ex);
+        };
+
         // 2️⃣ Retry config → exponential: 1s, 2s, 4s (capped at 10s), 3 retries
         ExponentialBackOff backOff = new ExponentialBackOff(1000L, 2.0);
         backOff.setMaxAttempts(3);
@@ -107,7 +121,7 @@ public class KafkaConsumerConfig {
 
         // 3️⃣ Main error handler
         DefaultErrorHandler errorHandler =
-                new DefaultErrorHandler(recoverer, backOff);
+                new DefaultErrorHandler(loggingRecoverer, backOff);
 
         // 4️⃣ Optional: mark some exceptions as non-retryable
         errorHandler.addNotRetryableExceptions(
