@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -26,6 +27,7 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.ExponentialBackOff;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -117,8 +119,11 @@ public class KafkaConsumerConfig {
 
             @Override
             public void recovered(ConsumerRecord<?, ?> record, Exception ex) {
-                log.warn("Retries exhausted, sent to DLT key={} topic={} partition={} offset={} reason={}",
-                        record.key(), record.topic(), record.partition(), record.offset(), ex.getMessage());
+                //record.headers().forEach(hd -> log.error("DEBUG header key={} value={}", hd.key(), new String(hd.value(), StandardCharsets.UTF_8)));
+                Header h = record.headers().lastHeader("correlationId");
+                String correlationId = h == null ? null : new String(h.value(), StandardCharsets.UTF_8);
+                log.error("Sending to DLT topic={} partition={} offset={} key={} correlationId={}",
+                        record.topic(), record.partition(), record.offset(), record.key(), correlationId, ex);
             }
 
             @Override
