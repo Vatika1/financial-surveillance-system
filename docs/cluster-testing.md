@@ -6,6 +6,84 @@ Testing a change on the cluster: deploy it, confirm it is running, send trades t
 
 **Rule:** a trade sent to the NLB is checked in Grafana (Loki) or with `kubectl logs`. Local Docker logs never reach Loki.
 
+## 0. Is the cluster running my latest commit?
+
+Run before every cluster test. Each step must match the one before it; stop at the first mismatch and fix it there.
+
+```
+laptop commit  →  GitHub branch  →  CI run (green)  →  ECR image :<sha>  →  deployment image  →  pods running it
+```
+
+Set the branch and service once:
+
+```powershell
+$branch = "master"                      # or "incident-drills"
+$svc    = "activity-monitor-service"    # deployment and ECR repo name
+```
+
+**Step 1 — nothing left uncommitted or unpushed**
+
+```powershell
+git checkout $branch
+git status -sb                          # first line must not say [ahead N]; no modified files listed
+git fetch origin
+git rev-parse --short HEAD              # laptop
+git rev-parse --short origin/$branch    # GitHub — must equal the line above
+```
+
+`[ahead N]` → `git push`. `[behind N]` → `git pull`. Modified files → commit them or they are not in the build.
+
+**Step 2 — CI built that commit and it is green**
+
+```powershell
+gh run list --branch $branch --limit 3 --json headSha,status,conclusion,displayTitle,createdAt | ConvertFrom-Json | Format-Table @{n='sha';e={$_.headSha.Substring(0,7)}},status,conclusion,displayTitle,createdAt
+```
+
+The top row's `sha` must equal step 1, with `status=completed` and `conclusion=success`. `in_progress` → wait (`gh run watch`). `failure` → nothing was deployed; `gh run view --log-failed` shows why. No row for your sha on a non-master branch → it was never run; see [Deploy a branch](#1-deploy-a-branch).
+
+A docs-only commit (`docs/**`, `*.md`, `scripts/**`) never triggers CI, so the newest sha with an image can be older than HEAD. That is fine as long as no code changed after it.
+
+**Step 3 — the image exists in ECR**
+
+```powershell
+$sha = git rev-parse --short HEAD
+aws ecr describe-images --region us-east-1 --repository-name surveillance-prod/$svc --image-ids imageTag=$sha --query "imageDetails[0].imagePushedAt"
+```
+
+A timestamp = the image is there. `ImageNotFoundException` = CI did not push it (skipped service, failed build, or a docs-only commit).
+
+**Step 4 — the deployment points at that image**
+
+```powershell
+kubectl get deployment $svc -o jsonpath="{.spec.template.spec.containers[0].image}"
+```
+
+Must end in `:$sha`. A different tag = another run deployed after yours (the last deploy wins) or yours never reached the deploy step.
+
+**Step 5 — every pod is actually running it**
+
+```powershell
+kubectl rollout status deployment/$svc --timeout=5m
+kubectl get pods -l app=$svc -o custom-columns="POD:.metadata.name,IMAGE:.spec.containers[0].image,STARTED:.status.startTime,READY:.status.containerStatuses[0].ready"
+```
+
+`successfully rolled out`, every pod on `:$sha`, `READY=true`, and `STARTED` after the CI run finished. A pod on the old tag = rollout still in progress or stuck (`kubectl describe pod <pod>`).
+
+**Step 6 — the app inside has started**
+
+```powershell
+kubectl logs -l app=$svc --tail=-1 | Select-String "Started .*Application" | Select-Object -Last 2
+```
+
+One `Started ...` line per pod, timestamped after the rollout. Only now send test trades.
+
+All-in-one check for the deployed image (steps 1, 4, 5):
+
+```powershell
+"laptop: $(git rev-parse --short HEAD)  github: $(git rev-parse --short origin/$branch)"
+kubectl get pods -l app=$svc -o custom-columns="POD:.metadata.name,IMAGE:.spec.containers[0].image"
+```
+
 ## 1. Deploy a branch
 
 Pushes to `master` deploy all services automatically. Any other branch (e.g. `incident-drills`) is deployed by hand:
@@ -26,13 +104,7 @@ gh run watch
 
 ## 2. Confirm what is running
 
-```powershell
-git rev-parse --short incident-drills
-kubectl get deployment activity-monitor-service -o jsonpath="{.spec.template.spec.containers[0].image}"
-kubectl rollout status deployment/activity-monitor-service
-```
-
-The image tag is the first 7 characters of the commit SHA. It must match before you send anything. Deployment names end in `-service` (`activity-monitor-service`, not `activity-monitor`).
+Run [step 0](#0-is-the-cluster-running-my-latest-commit) again after the deploy. The image tag is the first 7 characters of the commit SHA; it must match before you send anything. Deployment names end in `-service` (`activity-monitor-service`, not `activity-monitor`).
 
 ## 3. Send a trade to the cluster
 
