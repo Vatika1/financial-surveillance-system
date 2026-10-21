@@ -27,6 +27,61 @@ docker logs surveillance-activity-monitor 2>&1 | Select-String "Started Activity
 
 **Gotcha:** if step 2 shows an old time, the container is still running the previous image.
 
+### Per service
+
+Rebuild:
+
+```powershell
+docker compose up -d --build trade-ingestion-service
+docker compose up -d --build activity-monitor-service
+docker compose up -d --build alert-service
+docker compose up -d --build case-management-service
+```
+
+Has it started? (time must be after the rebuild)
+
+```powershell
+docker logs surveillance-trade-ingestion 2>&1 | Select-String "Started TradeIngestion" | Select-Object -Last 1
+docker logs surveillance-activity-monitor 2>&1 | Select-String "Started ActivityMonitor" | Select-Object -Last 1
+docker logs surveillance-alert-service 2>&1 | Select-String "Started AlertService" | Select-Object -Last 1
+docker logs surveillance-case-management 2>&1 | Select-String "Started CaseManagement" | Select-Object -Last 1
+```
+
+All four at once:
+
+```powershell
+"surveillance-trade-ingestion","surveillance-activity-monitor","surveillance-alert-service","surveillance-case-management" | ForEach-Object {
+  "$_ : " + (docker logs $_ 2>&1 | Select-String "Started .*Application" | Select-Object -Last 1)
+}
+```
+
+Last 5 minutes of logs:
+
+```powershell
+docker logs surveillance-trade-ingestion --since 5m 2>&1
+docker logs surveillance-activity-monitor --since 5m 2>&1
+docker logs surveillance-alert-service --since 5m 2>&1
+docker logs surveillance-case-management --since 5m 2>&1
+```
+
+Real errors only:
+
+```powershell
+docker logs surveillance-trade-ingestion --since 15m 2>&1 | Select-String -CaseSensitive '"level":"ERROR"'
+docker logs surveillance-activity-monitor --since 15m 2>&1 | Select-String -CaseSensitive '"level":"ERROR"'
+docker logs surveillance-alert-service --since 15m 2>&1 | Select-String -CaseSensitive '"level":"ERROR"'
+docker logs surveillance-case-management --since 15m 2>&1 | Select-String -CaseSensitive '"level":"ERROR"'
+```
+
+What each service logs for one healthy trade:
+
+```powershell
+docker logs surveillance-trade-ingestion --since 5m 2>&1 | Select-String "Processing trade|Trade persisted"
+docker logs surveillance-activity-monitor --since 5m 2>&1 | Select-String "Received batch|Published|Successfully processed|Sending to DLT"
+docker logs surveillance-alert-service --since 5m 2>&1 | Select-String "Received batch|Successfully processed|Sending to DLT"
+docker logs surveillance-case-management --since 5m 2>&1 | Select-String "Received batch|Creating|Published CaseCreatedEvent|Successfully processed"
+```
+
 ## Send trades
 
 Use a new trade ID every run: trade-ingestion returns `409 Conflict` for an ID it has seen before.
@@ -38,6 +93,37 @@ $ts = (Get-Date).ToUniversalTime().AddSeconds(-5).ToString("yyyy-MM-ddTHH:mm:ssZ
 "{`"tradeId`":`"T-TEST-1`",`"advisorId`":`"ADV-TEST`",`"accountId`":`"ACC-1`",`"clientId`":`"CL-1`",`"symbol`":`"AAPL`",`"tradeType`":`"BUY`",`"quantity`":100,`"price`":150.25,`"currency`":`"USD`",`"exchange`":`"NASDAQ`",`"tradeTimestamp`":`"$ts`",`"sourceSystem`":`"MANUAL`",`"sourceSystemId`":`"SRC-1`"}" | Set-Content -Encoding ascii body.json
 curl.exe -s -X POST http://localhost:8081/api/trades -H "Content-Type: application/json" --data-binary "@body.json"
 Remove-Item body.json
+```
+
+Then check it went through every service (wait ~10 s first; change `T-TEST-1` to your trade ID):
+
+```powershell
+# 1. trade-ingestion accepted it — and grab its correlationId
+$trade = "T-TEST-1"
+docker logs surveillance-trade-ingestion 2>&1 | Select-String $trade
+$cid = ((docker logs surveillance-trade-ingestion 2>&1 | Select-String $trade | Select-Object -First 1).Line | ConvertFrom-Json).correlationId
+"correlationId = $cid"
+
+# 2. activity-monitor: Received batch (once) → Published N AlertCreatedEvents → Successfully processed
+docker logs surveillance-activity-monitor 2>&1 | Select-String $cid
+
+# 3. alert-service: Received batch of N alerts (N values add up to the alert count)
+docker logs surveillance-alert-service 2>&1 | Select-String $cid
+
+# 4. case-management: Received batch of N alerts
+docker logs surveillance-case-management 2>&1 | Select-String $cid
+
+# 5. nothing failed
+docker logs surveillance-activity-monitor --since 5m 2>&1 | Select-String "Sending to DLT"
+```
+
+Readable version of steps 2–4 (message text only):
+
+```powershell
+"surveillance-activity-monitor","surveillance-alert-service","surveillance-case-management" | ForEach-Object {
+  "--- $_"
+  docker logs $_ 2>&1 | Select-String $cid | ForEach-Object { ($_.Line | ConvertFrom-Json).message }
+}
 ```
 
 Several trades at once (they arrive in activity-monitor as one batch):
