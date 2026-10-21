@@ -2,7 +2,13 @@
 
 [← index](commands.md)
 
-PowerShell, from the repo root, with the stack up (`docker compose up -d`). For starting, stopping and rebuilding the stack, see [docker.md](docker.md).
+PowerShell, from the repo root, with the stack up (`docker compose up -d`). For starting, stopping and rebuilding the stack, see [docker.md](docker.md). For the same checks on EKS, see [cluster-testing.md](cluster-testing.md).
+
+**Rule:** a trade sent to `localhost:8081` is checked with `docker logs`. Local containers do not ship logs to Loki, so Grafana never shows local trades.
+
+`docker compose up -d --build <service>` builds from the files on disk, so an unpushed change is tested locally. Rebuild only the service you changed.
+
+Compose runs every service with `SPRING_PROFILES_ACTIVE: prod`, so the `TradeSimulator` is off: the only trades are the ones you send.
 
 Container names: `surveillance-trade-ingestion`, `surveillance-activity-monitor`, `surveillance-alert-service`, `surveillance-case-management`, `surveillance-kafka`, `surveillance-postgres`, `surveillance-redis`.
 
@@ -48,6 +54,67 @@ Remove-Item body.json
 - The timestamp is 5 seconds ago: `@PastOrPresent` rejects future times, and the Redis window only counts recent trades.
 - `AAPL` is a restricted symbol, so every trade raises at least one alert.
 - A `500` with "Required request body is missing" means the body never got sent; check `body.json` was written.
+- `curl.exe -s -w "`n%{http_code}`n" ...` also prints the HTTP status on its own line.
+
+## Test scenarios
+
+Change the `tradeId` (and the field under test) in the one-trade command above. Same scenarios work on the cluster: swap `localhost:8081` for the NLB ([cluster-testing.md](cluster-testing.md)).
+
+| # | Scenario | Body change | HTTP | Expected in activity-monitor |
+|---|---|---|---|---|
+| 1 | Happy path | as above (`exchange: NASDAQ`) | 201 | `Received batch` once → `Published N AlertCreatedEvents` → `Successfully processed 1 trades` |
+| 2 | No exchange (Rule013 null case) | remove the `exchange` field | 201 | Same as 1. With the bug: `Received batch` 4 times (1s/2s/4s), then `Sending to DLT` ERROR |
+| 3 | OTC trade | `exchange: OTC` | 201 | RULE_013 violation raised (one extra alert) |
+| 4 | Duplicate tradeId | resend the same body | 409 `Trade already exists` | Nothing — the request never reaches Kafka |
+| 5 | Invalid request | remove a `@NotBlank` field, e.g. `symbol` | 400 | Nothing |
+| 6 | Batch | the 5-trade loop above | 201 ×5 | `Received batch of N trades` with N > 1 |
+| 7 | Idempotency-Key, first call | add `-H "Idempotency-Key: key-1"` | 201 | Normal processing; Redis `idem:trades:key-1` holds the saved response |
+| 8 | Idempotency-Key, replay | same key, same body | 201 (saved body) | Nothing new; only one row in `trade_ingestion.trades` |
+| 9 | Idempotency-Key, in progress | `SET idem:trades:key-2 PROCESSING EX 60` in Redis, then send with `key-2` | 409 | Nothing |
+
+Redis checks for 7–9:
+
+```powershell
+docker exec -it surveillance-redis redis-cli GET idem:trades:key-1
+docker exec -it surveillance-redis redis-cli TTL idem:trades:key-1      # -2 = key does not exist
+```
+
+## Follow one trade through every service
+
+Each request gets a `correlationId` in trade-ingestion, carried as a Kafka header. Pull it out of the trade-ingestion log, then search the downstream services with it:
+
+```powershell
+$cid = ((docker logs surveillance-trade-ingestion 2>&1 | Select-String "T-TEST-1" | Select-Object -First 1).Line | ConvertFrom-Json).correlationId
+docker logs surveillance-activity-monitor 2>&1 | Select-String $cid
+docker logs surveillance-alert-service 2>&1 | Select-String $cid
+docker logs surveillance-case-management 2>&1 | Select-String $cid
+```
+
+What "healthy" looks like:
+
+| Service | Lines |
+|---|---|
+| trade-ingestion | `Processing trade tradeId=...`, `Trade persisted tradeId=...` |
+| activity-monitor | `Received batch of 1 trades`, `Marked processed`, `Processing 1 trades`, `Published N AlertCreatedEvents`, `Successfully processed 1 trades` — each once |
+| alert-service | `Received batch of N alerts` — the N values add up to the alert count (alerts can arrive in several polls) |
+| case-management | `Received batch of N alerts` only. Its other lines (`Creating N cases`, `Published CaseCreatedEvent`) carry no correlationId yet — search those by text and time |
+
+**Gotcha:** a 409 request gets its own correlationId but never reaches Kafka, so downstream searches for it return nothing. Trace the original 201 request instead.
+
+## Silent consumer failures
+
+A listener exception is retried 3 times (1s, 2s, 4s) and then routed to `<topic>.DLT`. The `loggingRecoverer` in `KafkaConsumerConfig` logs one ERROR at that point; before it existed, the only sign was the same trade received 4 times.
+
+```powershell
+# Anything routed to a DLT in the last 15 minutes
+docker logs surveillance-activity-monitor --since 15m 2>&1 | Select-String "Sending to DLT"
+
+# The root cause line from that ERROR
+docker logs surveillance-activity-monitor --since 15m 2>&1 | Select-String "Sending to DLT" | ForEach-Object { ($_.Line | ConvertFrom-Json).stack_trace -split "`n" } | Select-String "Caused by" -Context 0,1
+
+# Retry pattern for one trade: more than one "Received batch" = it failed at least once
+docker logs surveillance-activity-monitor 2>&1 | Select-String $cid | Select-String "Received batch"
+```
 
 ## Logs
 
@@ -103,7 +170,15 @@ One sorted set per advisor: key `window:<advisorId>`, member = trade JSON, score
 
 ## Kafka
 
-Topics: `trades.raw`, `alerts.created`, `alerts.persisted`, plus a `.DLT` (dead letter topic) for each.
+Topics: `trades.raw`, `alerts.created`, `alerts.persisted`, `cases.created`, `cases.closed`, plus a `.DLT` (dead letter topic) for each consumed topic. A DLT must have the same partition count as its source topic: `DeadLetterPublishingRecoverer` writes to the same partition number, and a missing partition makes the batch re-seek forever.
+
+```powershell
+# Partition counts side by side — every .DLT should match its source
+docker exec surveillance-kafka kafka-topics --bootstrap-server kafka:29092 --describe | Select-String "PartitionCount"
+
+# Raise a DLT that is short (partitions can only go up)
+docker exec surveillance-kafka kafka-topics --bootstrap-server kafka:29092 --alter --topic alerts.created.DLT --partitions 6
+```
 
 | Command | When |
 |---|---|
