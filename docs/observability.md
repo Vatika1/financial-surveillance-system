@@ -152,6 +152,47 @@ Grafana → Explore → Tempo datasource.
 
 Each bar is a span (Kafka poll, SQL statement, Kafka send); width = duration. Click a span for its attributes.
 
+### TraceQL queries
+
+Paste into the **TraceQL** tab. TraceQL is not LogQL — a Loki query pasted here gives `invalid TraceQL query: parse error`. Log text ("Creating case", "Sending to DLT") is in Loki only; Tempo has spans (HTTP request, Kafka poll/send, SQL statements).
+
+```traceql
+# Your trades arriving at trade-ingestion, and the outbox publishing them
+{ name = "POST /api/trades" || name = "outbox.publishBatch" }
+
+# All traces for one service (swap the name: trade-ingestion-service, activity-monitor-service, alert-service, case-management-service)
+{ resource.service.name = "case-management-service" }
+
+# case-management doing real work — publishing cases.created
+{ resource.service.name = "case-management-service" && name =~ "cases.created.*" }
+
+# Any span that failed
+{ status = error }
+
+# Errors in one service
+{ resource.service.name = "activity-monitor-service" && status = error }
+
+# Slow spans (where is the time going?)
+{ resource.service.name = "case-management-service" && duration > 100ms }
+
+# Slowest database statements across all services
+{ span.db.system = "postgresql" && duration > 50ms }
+```
+
+### Noise check (after the OTel Collector)
+
+Services send traces to the OTel Collector (`otel-collector.monitoring.svc.cluster.local:4318`); its `filter/noise` processor drops noisy **root** spans before Tempo. Values: `k8s\monitoring\otel-collector-values.yaml`.
+
+```traceql
+# Should return nothing recent — outbox poll and health-probe roots are dropped
+{ name = "SELECT trade_ingestion.outbox" || name =~ "GET /actuator.*" }
+
+# activity-monitor background noise — should return nothing once filtered
+{ resource.service.name = "activity-monitor-service" && (name = "surveillance" || name = "OutcomeTrackingRunnable.run") }
+```
+
+`<root span not yet received>` rows are child spans whose root was dropped by the filter — harmless. Removing them needs `tail_sampling` (drops whole traces), not worth the memory.
+
 Batch Kafka listeners start a new trace per poll and only *link* to the producer span, so one trade shows as one trace per service, not one connected timeline. Logs (by correlationId) are the way to follow a trade end to end; traces answer "where is the time going inside this service".
 
 `connection refused` on `tempo...:3200` or `4318` = Tempo is down. `trace not found` for an older trace = Tempo restarted (persistence is off). Check `kubectl get pods -n monitoring | Select-String tempo` for restarts / `OOMKilled`.
