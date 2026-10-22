@@ -1,0 +1,35 @@
+mode: deployment
+fullnameOverride: otel-collector
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+config:
+  processors:
+    filter/noise:
+      error_mode: ignore
+      traces:
+        span:
+          # empty outbox polls: root SELECT spans only (the SELECT inside POST traces has a parent and is kept)
+          - 'name == "SELECT trade_ingestion.outbox" and parent_span_id == SpanID(0x0000000000000000)'
+          # health probes and Prometheus scrapes
+          - 'IsMatch(name, "^GET /actuator/.*") and parent_span_id == SpanID(0x0000000000000000)'
+    batch: {}
+  exporters:
+    otlp_grpc/tempo:
+      endpoint: tempo.monitoring.svc.cluster.local:4317
+      tls:
+        insecure: true
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, filter/noise, batch]
+        exporters: [otlp_grpc/tempo]
