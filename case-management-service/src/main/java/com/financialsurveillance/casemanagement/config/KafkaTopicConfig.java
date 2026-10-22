@@ -27,14 +27,19 @@ public class KafkaTopicConfig {
     @Value("${kafka.topics.min-insync-replicas:1}")
     private String minInsyncReplicas;
 
+    private static final int CASES_PARTITIONS = 3;
+
+    // Must match alerts.persisted (declared in alert-service): the DLT uses the same partition number.
+    private static final int ALERTS_PERSISTED_PARTITIONS = 6;
+
     @Bean
     public NewTopic casesCreatedTopic() {
-        return topic(casesCreatedTopic);
+        return topic(casesCreatedTopic, CASES_PARTITIONS);
     }
 
     @Bean
     public NewTopic casesClosedTopic() {
-        return topic(casesClosedTopic);
+        return topic(casesClosedTopic, CASES_PARTITIONS);
     }
 
     // Dead letter topic for the topic this service consumes.
@@ -42,11 +47,11 @@ public class KafkaTopicConfig {
     // NewTopic beans only create; they never alter an existing topic.
     @Bean
     public NewTopic alertsPersistedDltTopic() {
-        return topic(alertsPersistedTopic + ".DLT");
+        return topic(alertsPersistedTopic + ".DLT", ALERTS_PERSISTED_PARTITIONS);
     }
 
-    private NewTopic topic(String name) {
-        return new NewTopic(name, 3, replicationFactor)
+    private NewTopic topic(String name,  int partitions) {
+        return new NewTopic(name, partitions, replicationFactor)
                 .configs(Map.of(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas));
     }
 }

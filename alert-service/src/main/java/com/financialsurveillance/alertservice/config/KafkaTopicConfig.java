@@ -10,6 +10,13 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaTopicConfig {
 
+    // alerts.persisted is produced here and consumed by case-management.
+    private static final int ALERTS_PERSISTED_PARTITIONS = 6;
+
+    // Must match alerts.created (declared in activity-monitor): DeadLetterPublishingRecoverer
+    // sends a failed record to the SAME partition number on the DLT.
+    private static final int ALERTS_CREATED_PARTITIONS = 6;
+
     // Prod (MSK, 2 brokers) sets these to 2; local and test fall back to 1 for a single broker.
     @Value("${kafka.topics.replication-factor:1}")
     private int replicationFactor;
@@ -20,7 +27,7 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic alertsPersistedTopic() {
         return TopicBuilder.name("alerts.persisted")
-                .partitions(6)
+                .partitions(ALERTS_PERSISTED_PARTITIONS)
                 .replicas(replicationFactor)
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
@@ -29,7 +36,7 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic alertsCreatedDltTopic() {
         return TopicBuilder.name("alerts.created.DLT")
-                .partitions(3)
+                .partitions(ALERTS_CREATED_PARTITIONS)
                 .replicas(replicationFactor)
                 .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, minInsyncReplicas)
                 .build();
