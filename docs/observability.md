@@ -179,9 +179,40 @@ Paste into the **TraceQL** tab. TraceQL is not LogQL — a Loki query pasted her
 { span.db.system = "postgresql" && duration > 50ms }
 ```
 
+Kafka spans — the Tempo side of the "Published" / "Successfully processed" log lines:
+
+```traceql
+# Publish / process spans per topic
+{ name =~ "trades.raw.*" }
+{ name =~ "alerts.created.*" }
+{ name =~ "alerts.persisted.*" }
+{ name =~ "cases.created.*" }
+
+# Only publishes (producer side)
+{ span.messaging.operation = "publish" }
+
+# Only consumes (consumer side)
+{ span.messaging.operation = "process" || span.messaging.operation = "receive" }
+
+# One service publishing to one topic
+{ resource.service.name = "activity-monitor-service" && span.messaging.destination.name = "alerts.created" }
+
+# Anything sent to a DLT
+{ span.messaging.destination.name =~ ".*\\.DLT" }
+```
+
+Span names depend on the agent version, hence the regex. If one returns nothing, open any trade trace and check what the Kafka span is called.
+
 ### Noise check (after the OTel Collector)
 
 Services send traces to the OTel Collector (`otel-collector.monitoring.svc.cluster.local:4318`); its `filter/noise` processor drops noisy **root** spans before Tempo. Values: `k8s\monitoring\otel-collector-values.yaml`.
+
+Noise is cut in two places:
+
+| Where | What | Covers |
+|---|---|---|
+| Deployment env vars | `OTEL_INSTRUMENTATION_SPRING_SCHEDULING_ENABLED`, `_SPRING_DATA_ENABLED`, `_HIBERNATE_ENABLED` = `"false"` | Each service whose deployment YAML has them — must be in all four |
+| Collector `filter/noise` | Drops root spans: outbox SELECT, `GET /actuator/*`, `surveillance` | All four services |
 
 ```traceql
 # Should return nothing recent — outbox poll and health-probe roots are dropped
