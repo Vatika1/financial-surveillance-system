@@ -4,6 +4,7 @@ import com.financialsurveillance.events.AlertPersistedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
@@ -34,33 +35,42 @@ public class AlertPersistedEventConsumer {
                 .distinct()
                 .toList();
         log.info("Received batch of {} alerts correlationIds={}", events.size(), correlationIds);
+        if (!correlationIds.isEmpty()) {
+            MDC.put("correlationId", correlationIds.get(0));
+        }
 
-        // Find the first invalid record. Everything before it is processed normally;
-        // the invalid one goes to the DLT; everything after it is redelivered on the next poll.
-        int firstInvalid = -1;
-        for (int i = 0; i < events.size(); i++) {
-            AlertPersistedEvent event = events.get(i);
-            if (event == null || event.getAlertId() == null) {
-                firstInvalid = i;
-                break;
+        try {
+            // Find the first invalid record. Everything before it is processed normally;
+            // the invalid one goes to the DLT; everything after it is redelivered on the next poll.
+            int firstInvalid = -1;
+            for (int i = 0; i < events.size(); i++) {
+                AlertPersistedEvent event = events.get(i);
+                if (event == null || event.getAlertId() == null) {
+                    firstInvalid = i;
+                    break;
+                }
             }
+
+            List<AlertPersistedEvent> valid = firstInvalid < 0 ? events : events.subList(0, firstInvalid);
+
+            if (!valid.isEmpty()) {
+                caseProcessor.processBatchInTransaction(valid);
+                log.info("Successfully processed {} alerts", valid.size());
+            }
+
+            if (firstInvalid >= 0) {
+                throw new BatchListenerFailedException(
+                        "Invalid event: missing required fields",
+                        new IllegalArgumentException("Invalid event: missing required fields"),
+                        firstInvalid
+                );
+            }
+
+            ack.acknowledge();
+        }
+        finally {
+            MDC.remove("correlationId");
         }
 
-        List<AlertPersistedEvent> valid = firstInvalid < 0 ? events : events.subList(0, firstInvalid);
-
-        if (!valid.isEmpty()) {
-            caseProcessor.processBatchInTransaction(valid);
-            log.info("Successfully processed {} alerts", valid.size());
-        }
-
-        if (firstInvalid >= 0) {
-            throw new BatchListenerFailedException(
-                    "Invalid event: missing required fields",
-                    new IllegalArgumentException("Invalid event: missing required fields"),
-                    firstInvalid
-            );
-        }
-
-        ack.acknowledge();
     }
 }
