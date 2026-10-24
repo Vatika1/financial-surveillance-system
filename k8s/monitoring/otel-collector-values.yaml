@@ -1,0 +1,39 @@
+mode: deployment
+fullnameOverride: otel-collector
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+
+config:
+  processors:
+    filter/noise:
+      error_mode: ignore
+      traces:
+        span:
+          # health probes and Prometheus scrapes
+          - 'IsMatch(name, "^GET /actuator/.*") and parent_span_id == SpanID(0x0000000000000000)'
+          # DB/Redis calls not inside a request or Kafka message: outbox poll, outbox cleanup DELETE, Redis cleanup, startup queries
+          - 'attributes["db.system"] != nil and parent_span_id == SpanID(0x0000000000000000)'
+          # connection checks with no SQL (health probe DB check)
+          - 'attributes["db.statement"] == ""'
+          # outbox backlog count query from the metrics scrape
+          - 'name == "SELECT trade_ingestion.outbox" and (IsMatch(attributes["db.statement"], "(?i)count") or IsMatch(attributes["db.query.text"], "(?i)count"))'
+    batch: {}
+  exporters:
+    otlp_grpc/tempo:
+      endpoint: tempo.monitoring.svc.cluster.local:4317
+      tls:
+        insecure: true
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, filter/noise, batch]
+        exporters: [otlp_grpc/tempo]

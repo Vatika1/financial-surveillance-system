@@ -122,6 +122,7 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Cluster autoscaler install failed" -Foreg
 Write-Host "`n[4e/5] Installing Loki and Fluent Bit..." -ForegroundColor Cyan
 helm repo add grafana https://grafana.github.io/helm-charts 2>$null
 helm repo add fluent https://fluent.github.io/helm-charts 2>$null
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts 2>$null
 helm repo update
 $lokiValues = Join-Path $k8sPath "monitoring\loki-values.yaml"
 helm upgrade --install loki grafana/loki `
@@ -143,6 +144,13 @@ helm upgrade --install tempo grafana/tempo `
 if ($LASTEXITCODE -ne 0) { Write-Host "Tempo install failed" -ForegroundColor Red; exit 1 }
 kubectl apply -f (Join-Path $k8sPath "monitoring\tempo-datasource.yaml")
 if ($LASTEXITCODE -ne 0) { Write-Host "Tempo datasource ConfigMap failed" -ForegroundColor Red; exit 1 }
+
+# ===== STEP 4g: OTel Collector (filters noisy spans before Tempo) =====
+Write-Host "`n[4g/5] Installing OTel Collector..." -ForegroundColor Cyan
+$otelValues = Join-Path $k8sPath "monitoring\otel-collector-values.yaml"
+helm upgrade --install otel-collector open-telemetry/opentelemetry-collector `
+    --namespace monitoring -f $otelValues --wait --timeout 5m
+if ($LASTEXITCODE -ne 0) { Write-Host "OTel Collector install failed" -ForegroundColor Red; exit 1 }
 
 # ===== STEP 5: Deploy services =====
 Write-Host "`n[5/5] Deploying services..." -ForegroundColor Cyan

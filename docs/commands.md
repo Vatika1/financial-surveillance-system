@@ -8,9 +8,11 @@ Everything is PowerShell unless noted. `<name>` means substitute your value. Por
 | [aws.md](aws.md) | ECR, RDS, EKS kubeconfig, load balancer checks, teardown verification |
 | [terraform.md](terraform.md) | Persistent infra (RDS, ECR) changes |
 | [docker.md](docker.md) | Local Docker Compose stack, port conflicts |
-| [local-testing.md](local-testing.md) | Testing locally: sending trades, reading logs, Postgres, Redis, Kafka and DLT checks |
+| [local-testing.md](local-testing.md) | Testing locally: test scenarios, sending trades, following a trade by correlationId, silent failures, Postgres, Redis, Kafka and DLT checks |
+| [cluster-testing.md](cluster-testing.md) | Testing on EKS: deploying a branch, confirming the image, sending trades to the NLB, checking in Grafana, Kafka CLI against MSK |
 | [k6.md](k6.md) | Load tests and manual trade generation |
-| [observability.md](observability.md) | Grafana, Prometheus, Loki, actuator metrics, PromQL |
+| [observability.md](observability.md) | Grafana, Prometheus, Loki (incident queries, stack traces), Tempo, actuator metrics, PromQL incident metrics |
+| [incident-drills.md](incident-drills.md) | Drill process, drill list, template, and write-ups with postmortems and interview answers |
 | [powershell.md](powershell.md) | PowerShell gotchas |
 
 ## Bring the stack up / tear it down
