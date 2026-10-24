@@ -17,12 +17,14 @@ config:
       error_mode: ignore
       traces:
         span:
-          # empty outbox polls: root SELECT spans only (the SELECT inside POST traces has a parent and is kept)
-          - 'name == "SELECT trade_ingestion.outbox" and parent_span_id == SpanID(0x0000000000000000)'
           # health probes and Prometheus scrapes
           - 'IsMatch(name, "^GET /actuator/.*") and parent_span_id == SpanID(0x0000000000000000)'
-          - 'name == "surveillance" and parent_span_id == SpanID(0x0000000000000000)'
-          - 'name == "SELECT trade_ingestion.outbox" and attributes["db.statement"] != nil and IsMatch(attributes["db.statement"], "(?i)count")'
+          # DB/Redis calls not inside a request or Kafka message: outbox poll, outbox cleanup DELETE, Redis cleanup, startup queries
+          - 'attributes["db.system"] != nil and parent_span_id == SpanID(0x0000000000000000)'
+          # connection checks with no SQL (health probe DB check)
+          - 'attributes["db.statement"] == ""'
+          # outbox backlog count query from the metrics scrape
+          - 'name == "SELECT trade_ingestion.outbox" and (IsMatch(attributes["db.statement"], "(?i)count") or IsMatch(attributes["db.query.text"], "(?i)count"))'
     batch: {}
   exporters:
     otlp_grpc/tempo:
