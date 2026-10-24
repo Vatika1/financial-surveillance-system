@@ -22,6 +22,7 @@ config:
           # health probes and Prometheus scrapes
           - 'IsMatch(name, "^GET /actuator/.*") and parent_span_id == SpanID(0x0000000000000000)'
           - 'name == "surveillance" and parent_span_id == SpanID(0x0000000000000000)'
+          - 'name == "SELECT trade_ingestion.outbox" and attributes["db.statement"] != nil and IsMatch(attributes["db.statement"], "(?i)count")'
     batch: {}
   exporters:
     otlp_grpc/tempo:
