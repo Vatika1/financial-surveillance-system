@@ -34,6 +34,12 @@ spec:
               value: "none"
             - name: OTEL_LOGS_EXPORTER
               value: "none"
+            - name: OTEL_INSTRUMENTATION_SPRING_SCHEDULING_ENABLED
+              value: "false"
+            - name: OTEL_INSTRUMENTATION_SPRING_DATA_ENABLED
+              value: "false"
+            - name: OTEL_INSTRUMENTATION_HIBERNATE_ENABLED
+              value: "false"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://surveillance-prod-db.ccfkou6gmo5z.us-east-1.rds.amazonaws.com:5432/surveillance?currentSchema=case_management"
             - name: SPRING_DATASOURCE_USERNAME

@@ -21,6 +21,7 @@ config:
           - 'name == "SELECT trade_ingestion.outbox" and parent_span_id == SpanID(0x0000000000000000)'
           # health probes and Prometheus scrapes
           - 'IsMatch(name, "^GET /actuator/.*") and parent_span_id == SpanID(0x0000000000000000)'
+          - 'name == "surveillance" and parent_span_id == SpanID(0x0000000000000000)'
     batch: {}
   exporters:
     otlp_grpc/tempo:
