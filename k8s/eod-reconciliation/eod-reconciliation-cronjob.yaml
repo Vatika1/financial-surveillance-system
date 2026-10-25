@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: eod-reconciliation-job
+spec:
+  schedule: "5 15 * * 1-5"
+  timeZone: "America/New_York"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: eod-reconciliation-job
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: eod-reconciliation-job
+              image: 674326380423.dkr.ecr.us-east-1.amazonaws.com/surveillance-prod/eod-reconciliation-job:IMAGE_TAG
+              imagePullPolicy: Always
+              env:
+                - name: JAVA_TOOL_OPTIONS
+                  value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+                - name: SPRING_PROFILES_ACTIVE
+                  value: "prod"
+                - name: SPRING_DATASOURCE_URL
+                  value: "jdbc:postgresql://surveillance-prod-db.ccfkou6gmo5z.us-east-1.rds.amazonaws.com:5432/surveillance?currentSchema=eod_reconciliation"
+                - name: SPRING_DATASOURCE_USERNAME
+                  value: "surveillance"
+                - name: SPRING_DATASOURCE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-secret
+                      key: password
+              volumeMounts:
+                - name: booking-feed
+                  mountPath: /data/booking-feed
+                  readOnly: true
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+          volumes:
+            - name: booking-feed
+              configMap:
+                name: booking-feed
+                optional: true
