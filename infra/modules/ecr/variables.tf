@@ -15,6 +15,7 @@ variable "service_names" {
     "trade-ingestion-service",
     "activity-monitor-service",
     "alert-service",
-    "case-management-service"
+    "case-management-service",
+    "eod-reconciliation-job"
   ]
 }
