@@ -5,6 +5,8 @@ module "eks" {
   environment        = var.environment
   vpc_id             = data.terraform_remote_state.persistent.outputs.vpc_id
   private_subnet_ids = data.terraform_remote_state.persistent.outputs.private_subnet_ids
+  node_desired_size  = 4
+  node_min_size      = 4
 }
 
 module "msk" {
