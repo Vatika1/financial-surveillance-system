@@ -61,7 +61,7 @@ public class TradeEventProducer {
     public CompletableFuture<SendResult<String, TradeCreatedEvent>> publishTradeCreatedAsync(
             TradeCreatedEvent event, String correlationId) {
         ProducerRecord<String, TradeCreatedEvent> record =
-                new ProducerRecord<>(topics.tradesRaw(), event.getAccountId(), event);   // same key/topic you use now
+                new ProducerRecord<>(topics.tradesRaw(), event.getAdvisorId(), event);   // same key/topic you use now
         if (correlationId != null) {
             record.headers().add("correlationId", correlationId.getBytes(StandardCharsets.UTF_8));
         }

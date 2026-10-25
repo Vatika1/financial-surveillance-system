@@ -32,6 +32,11 @@ Write-Host "`n[3b/5] Installing metrics-server..." -ForegroundColor Cyan
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 if ($LASTEXITCODE -ne 0) { Write-Host "metrics-server install failed" -ForegroundColor Red; exit 1 }
 
+# ===== STEP 3c: Spread CoreDNS across nodes (never both copies on one node) =====
+Write-Host "`n[3c/5] Spreading CoreDNS across nodes..." -ForegroundColor Cyan
+kubectl patch deployment coredns -n kube-system --type merge -p '{\"spec\":{\"template\":{\"spec\":{\"topologySpreadConstraints\":[{\"maxSkew\":1,\"topologyKey\":\"kubernetes.io/hostname\",\"whenUnsatisfiable\":\"DoNotSchedule\",\"labelSelector\":{\"matchLabels\":{\"k8s-app\":\"kube-dns\"}}}]}}}}'
+if ($LASTEXITCODE -ne 0) { Write-Host "CoreDNS spread patch failed" -ForegroundColor Red; exit 1 }
+
 # ===== STEP 4a: Recreate K8s Secret 'db-secret' from AWS Secrets Manager =====
 Write-Host "`n[4a/5] Recreating K8s Secret 'db-secret' from AWS Secrets Manager..." -ForegroundColor Cyan
 
