@@ -22,6 +22,7 @@
         <module>activity-monitor-service</module>
         <module>alert-service</module>
         <module>case-management-service</module>
+        <module>eod-reconciliation-job</module>
 <!--        <module>notification-service</module>-->
 <!--        <module>audit-service</module>-->
 <!--        <module>reporting-service</module>-->
