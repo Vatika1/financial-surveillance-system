@@ -17,15 +17,27 @@ public class ReconciliationProcessor implements ItemProcessor<BookingTotal, Stri
 
     private final ReconciliationRepository repository;
     private final LocalDate tradeDate;
+    private final long drillDelayMs;
 
-    public ReconciliationProcessor(ReconciliationRepository repository, LocalDate tradeDate) {
+    public ReconciliationProcessor(ReconciliationRepository repository, LocalDate tradeDate, long drillDelayMs) {
         this.repository = repository;
         this.tradeDate = tradeDate;
+        this.drillDelayMs = drillDelayMs;
     }
 
     @Override
     public String process(BookingTotal booked) {
         Optional<AdvisorDailyTotal> found = repository.findForUpdate(booked.advisorId(), tradeDate);
+
+        // DRILL ONLY: stands in for slow per-row work while the row lock is held.
+        // Locks stay held until the chunk commits, so they pile up across the chunk.
+        if (drillDelayMs > 0) {
+            try {
+                Thread.sleep(drillDelayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
 
         if (found.isEmpty()) {
             log.warn("Reconciliation break advisorId={} tradeDate={} reason=missing_in_surveillance booked={}/{}",
