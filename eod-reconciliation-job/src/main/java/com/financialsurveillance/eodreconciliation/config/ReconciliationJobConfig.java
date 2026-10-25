@@ -26,6 +26,10 @@ import java.util.ArrayList;
 @Configuration
 public class ReconciliationJobConfig {
 
+    // ReconciliationJobConfig.java — inject the property
+    @Value("${reconciliation.drill-delay-ms:0}")
+    private long drillDelayMs;
+
     @Bean
     @StepScope
     public FlatFileItemReader<BookingTotal> bookingFeedReader(
@@ -58,6 +62,13 @@ public class ReconciliationJobConfig {
     public ItemWriter<String> reconciledWriter(
             ReconciliationRepository repository,
             @Value("#{jobParameters['tradeDate']}") String tradeDate) {
+        if (drillDelayMs > 0) {
+            try {
+                Thread.sleep(drillDelayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         LocalDate date = LocalDate.parse(tradeDate);
         return chunk -> repository.markReconciled(new ArrayList<>(chunk.getItems()), date);
     }
