@@ -25,7 +25,7 @@ spring:
 
 reconciliation:
   feed-dir: booking-feed/out
-  chunk-size: 20000
+  chunk-size: 100
 
 logging:
   level:
