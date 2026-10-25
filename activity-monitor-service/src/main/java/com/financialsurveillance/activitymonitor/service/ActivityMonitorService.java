@@ -10,7 +10,6 @@ import com.financialsurveillance.activitymonitor.producer.AlertEventProducer;
 import com.financialsurveillance.activitymonitor.repository.AdvisorDailyActivityRepository;
 import com.financialsurveillance.activitymonitor.repository.RuleViolationRepository;
 import com.financialsurveillance.events.AlertCreatedEvent;
-import com.financialsurveillance.events.AlertPersistedEvent;
 import com.financialsurveillance.events.TradeCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,14 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,20 +44,25 @@ public class ActivityMonitorService {
     private static final Duration WINDOW = Duration.ofSeconds(60);
     private static final ZoneId TRADING_ZONE = ZoneId.of("America/New_York");
 
-
     @Transactional
     public void processTrades(List<TradeCreatedEvent> events){
         log.info("Processing {} trades from alert batch", events.size());
 
-        ZonedDateTime now = ZonedDateTime.now();
         List<AlertCreatedEvent> alerts = new ArrayList<>(events.size());
+        // Key = "advisorId|tradeDate". TreeMap keeps the keys sorted.
+        Map<String, Integer> countByAdvisorDay = new TreeMap<>();
+        Map<String, BigDecimal> valueByAdvisorDay = new TreeMap<>();
 
         for(TradeCreatedEvent event: events){
             tradeWindowStore.addTrade(event.getAdvisorId(), event);
             LocalDate tradeDate = event.getTradeTimestamp() != null
                     ? event.getTradeTimestamp().withZoneSameInstant(TRADING_ZONE).toLocalDate()
                     : LocalDate.now(TRADING_ZONE);
-            advisorDailyActivityRepository.recordTrade(event.getAdvisorId(), tradeDate, event.getTotalValue());
+            String advisorDay = event.getAdvisorId() + "|" + tradeDate;
+            countByAdvisorDay.merge(advisorDay, 1, Integer::sum);
+            valueByAdvisorDay.merge(advisorDay,
+                    event.getTotalValue() == null ? BigDecimal.ZERO : event.getTotalValue(),
+                    BigDecimal::add);
             TransactionSynchronizationManager.registerSynchronization(
                     new TransactionSynchronization() {
                         @Override
@@ -77,7 +83,16 @@ public class ActivityMonitorService {
                 alerts.add(alertEventProducer.toAlertEvent(violation, event));
             }
         }
+
+        // One upsert per advisor per day, in sorted order: every consumer thread
+        // locks rows in the same order, so they can wait but never deadlock.
+        for (String advisorDay : countByAdvisorDay.keySet()) {
+            String[] parts = advisorDay.split("\\|");
+            advisorDailyActivityRepository.recordTrades(
+                    parts[0], LocalDate.parse(parts[1]),
+                    countByAdvisorDay.get(advisorDay), valueByAdvisorDay.get(advisorDay));
+        }
+
         alertEventProducer.publishAll(alerts);
     }
-
 }
