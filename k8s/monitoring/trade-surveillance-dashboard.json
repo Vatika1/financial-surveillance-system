@@ -4,22 +4,20 @@
   "metadata": {
     "name": "adgbp2w",
     "namespace": "default",
-    "uid": "6b9d3663-bfa6-4bc9-9a99-558c98260833",
-    "resourceVersion": "1792635646959011",
-    "generation": 2,
-    "creationTimestamp": "2026-10-22T01:34:37Z",
+    "uid": "cb203349-933a-46a5-a978-cfd02d719b8e",
+    "resourceVersion": "1793032362796984",
+    "generation": 1,
+    "creationTimestamp": "2026-10-26T16:32:42Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "893333373091840"
+      "grafana.app/deprecatedInternalID": "2568896573890560"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "sidecarProvider",
-      "grafana.app/sourceChecksum": "5ffeb082543c21ae750c557a54ba338d",
+      "grafana.app/sourceChecksum": "c76a4052f7e8f6d952c352e2cb7ff988",
       "grafana.app/sourcePath": "/tmp/dashboards/trade-surveillance-dashboard.json",
-      "grafana.app/sourceTimestamp": "1792635646000",
-      "grafana.app/updatedBy": "access-policy:service",
-      "grafana.app/updatedTimestamp": "2026-10-22T02:20:46Z",
+      "grafana.app/sourceTimestamp": "1793032362000",
       "grafana.app/folder": ""
     }
   },
@@ -2286,6 +2284,122 @@
           }
         }
       },
+      "panel-26": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "   sum by (job, topic) (increase(kafka_producer_topic_record_send_total{topic=~\".*DLT\"}[1m]))",
+                        "legendFormat": "{{job}} → {{topic}}",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Records sent to dead-letter topics. Should be 0",
+          "id": 26,
+          "links": [],
+          "title": "DLT messages (per minute)",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "line"
+                    }
+                  },
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
       "panel-3": {
         "kind": "Panel",
         "spec": {
@@ -3418,6 +3532,19 @@
               "height": 8,
               "width": 12,
               "x": 0,
+              "y": 96
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-26"
+              },
+              "height": 8,
+              "width": 12,
+              "x": 12,
               "y": 96
             }
           }
