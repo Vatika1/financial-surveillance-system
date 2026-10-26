@@ -13,7 +13,7 @@ public class Rule013OffExchangeTrade implements SurveillanceRule{
     @Override
     public Optional<RuleViolationDTO> evaluate(TradeCreatedEvent event, RuleContext context) {
         // BUG (planted): exchange is optional in TradeRequest, so this can be null
-        if (!event.getExchange().equals("OTC")) {
+        if (!"OTC".equals(event.getExchange())) {
             return Optional.empty();
         }
 
