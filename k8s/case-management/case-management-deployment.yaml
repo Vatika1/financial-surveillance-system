@@ -40,6 +40,10 @@ spec:
               value: "false"
             - name: OTEL_INSTRUMENTATION_HIBERNATE_ENABLED
               value: "false"
+            - name: OTEL_TRACES_SAMPLER
+              value: parentbased_traceidratio
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: "0.1"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://surveillance-prod-db.ccfkou6gmo5z.us-east-1.rds.amazonaws.com:5432/surveillance?currentSchema=case_management"
             - name: SPRING_DATASOURCE_USERNAME

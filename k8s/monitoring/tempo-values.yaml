@@ -4,9 +4,9 @@ tempo:
   resources:
     requests:
       cpu: 100m
-      memory: 1Gi
-    limits:
       memory: 1536Mi
+    limits:
+      memory: 2560Mi
 
 persistence:
   enabled: false
