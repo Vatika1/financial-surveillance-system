@@ -38,6 +38,10 @@ spec:
               value: "false"
             - name: OTEL_INSTRUMENTATION_HIBERNATE_ENABLED
               value: "false"
+            - name: OTEL_TRACES_SAMPLER
+              value: parentbased_traceidratio
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: "0.1"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_DATASOURCE_URL
